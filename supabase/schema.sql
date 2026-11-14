@@ -167,6 +167,10 @@ as $$
 $$;
 
 
+-- 접근 규칙 안에서 로그인 사용자가 이 두 함수를 부를 수 있게 한다
+grant execute on function private.listing_seller_id(uuid) to authenticated;
+grant execute on function private.comment_author_id(uuid) to authenticated;
+
 -- ---------------------------------------------------------------------
 -- 4. trigger: 화면 코드가 규칙을 어기지 못하게 DB 가 직접 지킨다
 -- ---------------------------------------------------------------------
@@ -359,14 +363,28 @@ alter table public.listings enable row level security;
 alter table public.comments enable row level security;
 alter table public.ratings  enable row level security;
 
-revoke all on public.profiles, public.listings, public.comments, public.ratings from anon;
+-- 권한(grant): "이 역할이 이 표에 어떤 동작을 시도할 수 있는가". 규칙(policy)보다 먼저 검사된다.
+-- 먼저 전부 거두고, 필요한 것만 다시 준다. (프로젝트 기본 설정이 무엇이든 결과가 같아진다)
+revoke all on public.profiles, public.listings, public.comments, public.ratings from anon, authenticated;
+
+grant select                 on public.profiles to authenticated;
+grant update (nickname)      on public.profiles to authenticated;
+
+grant select, insert, delete on public.listings to authenticated;
+grant update (title, price, category, place, description, image_urls, status, buyer_id, buyer_confirmed_at)
+  on public.listings to authenticated;
+
+grant select, insert, delete on public.comments to authenticated;
+grant update (body)          on public.comments to authenticated;
+
+grant select, insert         on public.ratings  to authenticated;
+
+-- 서버 함수(Edge Function, 댓글 알림 메일)는 관리자 역할로 모든 표를 쓴다
+grant all on public.profiles, public.listings, public.comments, public.ratings to service_role;
 
 -- 5-1. profiles
 --   읽기: 로그인 사용자 누구나 / 수정: 본인의 닉네임만
 --   completed_count, rating_avg, rating_count 는 trigger 만 바꾼다
-revoke insert, update, delete on public.profiles from authenticated;
-grant  update (nickname) on public.profiles to authenticated;
-
 drop policy if exists "profiles: 로그인 사용자 읽기" on public.profiles;
 create policy "profiles: 로그인 사용자 읽기" on public.profiles
   for select to authenticated
@@ -381,10 +399,6 @@ create policy "profiles: 본인만 수정" on public.profiles
 -- 5-2. listings
 --   읽기: 로그인 사용자 누구나 / 등록: 본인 이름으로만
 --   수정: 판매자, 그리고 구매자(확인만 — 4-1 trigger 가 제한) / 삭제: 판매자, 확정 전까지만
-revoke update on public.listings from authenticated;
-grant  update (title, price, category, place, description, image_urls, status, buyer_id, buyer_confirmed_at)
-  on public.listings to authenticated;
-
 drop policy if exists "listings: 로그인 사용자 읽기" on public.listings;
 create policy "listings: 로그인 사용자 읽기" on public.listings
   for select to authenticated
@@ -410,9 +424,6 @@ create policy "listings: 판매자 삭제" on public.listings
 --   읽기: 그 글의 판매자, 댓글 작성자 본인, 답글이면 원 댓글 작성자
 --   쓰기: 본인 이름으로만. 답글은 그 글의 판매자 또는 원 댓글 작성자만
 --   수정·삭제: 작성자만 (수정은 내용만)
-revoke update on public.comments from authenticated;
-grant  update (body) on public.comments to authenticated;
-
 drop policy if exists "comments: 당사자만 읽기" on public.comments;
 create policy "comments: 당사자만 읽기" on public.comments
   for select to authenticated
@@ -448,8 +459,6 @@ create policy "comments: 작성자만 삭제" on public.comments
 -- 5-4. ratings
 --   읽기: 평가한 사람과 평가받은 사람
 --   쓰기: 구매자가 확인한 거래에서, 판매자 ↔ 구매자가 서로에게만. 수정·삭제 없음
-revoke update, delete on public.ratings from authenticated;
-
 drop policy if exists "ratings: 당사자만 읽기" on public.ratings;
 create policy "ratings: 당사자만 읽기" on public.ratings
   for select to authenticated
