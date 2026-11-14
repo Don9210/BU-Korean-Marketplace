@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* 앱 전체에서 쓰는 색. Tailwind 에서 bg-brand, text-brand 처럼 쓴다. */
+@theme {
+  --color-brand: #cc0000;
+  --color-brand-dark: #a30000;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #e5e7eb; /* 폰 화면 바깥(PC 에서 볼 때) 배경 */
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR',
+    system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
