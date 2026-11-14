@@ -38,3 +38,5 @@
 - `vercel.json`: Vercel 에서 `/me` 같은 주소로 바로 들어가도 열리게 하는 설정
 - `.env` 가 비어 있어도 화면은 뜨고, 맨 위에 "Supabase 연결 전" 안내 띠가 보임
 - 로그인 검사(비로그인 → /login)는 아직 없음. 기능 1(인증)에서 `App.tsx` 에 추가
+- `supabase/schema.sql`: 테이블 4개, 접근 규칙(RLS), trigger, 사진 버킷(`listing-images`). 테스트용 DB 에서 규칙 58가지 확인. 실제 Supabase 에서는 아직 실행 전
+- AGENTS.md 에 없던 것을 schema.sql 에 넣음: 글자 수 제한(닉네임 2~20, 제목 60, 설명 2000, 댓글 1000), 구매자가 확인한 거래는 삭제·상태 변경 불가, 사진 버킷은 공개
