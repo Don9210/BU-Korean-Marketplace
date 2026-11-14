@@ -2,7 +2,7 @@
 
 BU 이메일(bu.edu) 인증을 거친 학생끼리만 거래하는, BU 한인 유학생용 캠퍼스 중고거래 모바일 웹앱입니다.
 
-**배포 링크:** (Vercel 연결 후 여기에 적기) · **팀:** BU LIKELION 6기 — 신동준 · 이동원 · 이준성
+**배포 링크:** https://bu-korean-marketplace.vercel.app · **팀:** BU LIKELION 6기 — 신동준 · 이동원 · 이준성
 
 ## 왜 만드나
 
