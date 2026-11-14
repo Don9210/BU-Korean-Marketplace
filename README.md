@@ -49,7 +49,7 @@ bu-market/
 
 ## 내 컴퓨터에서 실행하기
 
-1. 저장소 복사: Claude Code에서 "github.com/Don9210/bu-market 복사해와" (또는 `git clone`)
+1. 저장소 복사: Claude Code에서 "github.com/Don9210/BU-Korean-Marketplace 복사해와" (또는 `git clone`)
 2. `.env.example`을 복사해서 `.env` 만들기 → 두 줄 채우기 (값은 동원에게 직접 받기)
 3. Claude Code에서 "개발 서버 켜줘" (또는 `npm install` → `npm run dev`)
 4. 브라우저에서 `http://localhost:5173`

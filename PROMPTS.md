@@ -20,7 +20,7 @@
 ## 2026-11-13 · 이동원 · 저장소 초기 세팅
 
 프롬프트:
-> github.com/Don9210/bu-market 복사해와. AGENTS.md 읽고, Vite + React + TypeScript + Tailwind 프로젝트를 만들고 Supabase 연결해줘. .env에 VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY 넣을 자리 만들어줘. 다 되면 commit하고 push해줘.
+> github.com/Don9210/BU-Korean-Marketplace 복사해와. AGENTS.md 읽고, Vite + React + TypeScript + Tailwind 프로젝트를 만들고 Supabase 연결해줘. .env에 VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY 넣을 자리 만들어줘. 다 되면 commit하고 push해줘.
 
 결과 / 메모:
 - (여기에 적기)
