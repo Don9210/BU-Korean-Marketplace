@@ -75,3 +75,17 @@
 - 패키지, 기존 DB 스키마, 목록/검색, 상세/댓글, 거래 상태, 평점 기능은 변경하지 않음.
 - 실제 Supabase 접속 정보가 없어 운영 데이터 쓰기·메일·RLS 검증은 하지 않음. 두 기능의 설정/실계정 테스트 방법을 docs에 기록.
 - 검증: TypeScript·Vite 빌드, oxlint, 모의 API 기반 인증 10개·등록/수정/삭제 8개 브라우저 시나리오 통과. 빌드의 번들 크기 경고는 기능 범위 밖 최적화라 변경하지 않음.
+
+## 2026-11-15 · 이동원 · 기능 5·6 거래 상태·완료 확인, 평점 (만들 수 있는 부분)
+
+프롬프트:
+> 내 부분은 5,6이야. 지금은 일단 5번 6번 만들수있는 부분들을 만들자.
+
+결과 / 메모:
+- 기능 5: 거래 상태 버튼·구매자 고르기 조각(`DealSection`), 내 활동의 "확인 대기 거래"(`DealsToConfirm`), DB 요청 함수(`src/lib/deals.ts`).
+- 기능 6: 내 활동의 "평가할 거래"(`DealsToRate`, `RatingStars`), 평균 평점 표시(`RatingSummary`), DB 요청 함수(`src/lib/ratings.ts`).
+- 내 활동 맨 위에 내 프로필(`MyProfileCard`: 닉네임·평점·거래 완료 횟수) 추가.
+- 공유 파일 변경: `src/pages/MyActivityPage.tsx`(조각 연결), `src/components/`에 새 파일 6개. 기존 파일·패키지·DB는 건드리지 않음.
+- `DealSection`은 상세 화면(기능 4)이 생기면 한 줄로 끼운다. 방법은 `docs/deals-ratings-setup.md`.
+- 같은 날 `supabase/schema.sql`에 사진 읽기 규칙을 합침(`listing-images-policy.sql`과 같은 내용).
+- 검증: 빌드, oxlint, 가짜 데이터(모의 API)로 폰 화면 동작 확인. 실제 Supabase 로그인 상태 테스트는 인증 메일 설정 후에 해야 함.
