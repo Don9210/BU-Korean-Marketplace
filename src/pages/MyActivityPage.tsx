@@ -3,7 +3,6 @@ import DealsToConfirm from '../components/DealsToConfirm'
 import DealsToRate from '../components/DealsToRate'
 import MyListings from '../components/MyListings'
 import MyProfileCard from '../components/MyProfileCard'
-import PagePlaceholder from '../components/PagePlaceholder'
 
 // 화면 7 · 내 활동 — 기능 5, 6
 export default function MyActivityPage() {
@@ -16,12 +15,7 @@ export default function MyActivityPage() {
       <DealsToConfirm onConfirmed={() => setConfirmedCount((count) => count + 1)} />
       <DealsToRate refreshKey={confirmedCount} />
       <MyListings />
-      <PagePlaceholder
-        number={7}
-        title="내 활동 — 아직 남은 것"
-        file="src/pages/MyActivityPage.tsx"
-        todos={['내가 댓글 단 글 목록 (기능 4)']}
-      />
+      {/* TODO(기능 4): "내가 댓글 단 글" 목록을 여기에 추가한다. 댓글 기능이 만들어진 뒤에 가능. */}
     </>
   )
 }
