@@ -513,9 +513,19 @@ create policy "listing-images: 내 사진 지우기" on storage.objects
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
+-- 사진을 지우려면 "지우기" 규칙만으로는 부족하다. Storage 는 지우기 전에
+-- 그 파일을 먼저 찾아보기 때문에, 내 폴더의 파일을 읽는 규칙도 있어야 한다.
+drop policy if exists "listing-images: 내 사진 읽기" on storage.objects;
+create policy "listing-images: 내 사진 읽기" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'listing-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 
 -- ---------------------------------------------------------------------
--- 7. 여기서 하지 않는 것 (대시보드에서 따로 설정)
+-- 7.여기서 하지 않는 것 (대시보드에서 따로 설정)
 --   · 댓글 알림 메일: Database Webhook(comments INSERT) → Edge Function → Resend
 --   · 인증 코드 메일: Authentication → SMTP 설정(Resend), 이메일 OTP 6자리
 -- ---------------------------------------------------------------------

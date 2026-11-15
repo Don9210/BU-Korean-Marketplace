@@ -11,6 +11,7 @@
 3. 담당자가 SQL Editor에서 **`supabase/listing-images-policy.sql`**을 실행합니다.
    기존 테이블을 바꾸지 않고 본인 사진의 SELECT 정책을 추가합니다.
    Storage에서 사진을 삭제할 때 기존 DELETE 정책과 함께 사용합니다.
+   (11-15: 같은 정책을 `schema.sql`에도 합쳤고, 팀 Supabase에는 이미 실행했습니다.)
 4. Storage의 `listing-images` 버킷과 사용자 ID별 업로드/삭제 정책을 확인합니다.
    버킷의 업로드 한도는 압축 후 사진당 5MB이고 허용 형식은 JPEG, PNG, WebP입니다.
 
