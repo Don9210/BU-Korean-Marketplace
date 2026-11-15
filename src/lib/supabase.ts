@@ -18,4 +18,11 @@ if (!isSupabaseReady) {
 export const supabase = createClient(
   url || 'https://not-configured.supabase.co',
   anonKey || 'not-configured',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false, // 이메일 링크 대신 6자리 코드를 직접 입력한다.
+    },
+  },
 )

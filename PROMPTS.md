@@ -40,3 +40,38 @@
 - 로그인 검사(비로그인 → /login)는 아직 없음. 기능 1(인증)에서 `App.tsx` 에 추가
 - `supabase/schema.sql`: 테이블 4개, 접근 규칙(RLS), trigger, 사진 버킷(`listing-images`). 테스트용 DB 에서 규칙 58가지 확인. 실제 Supabase 에서는 아직 실행 전
 - AGENTS.md 에 없던 것을 schema.sql 에 넣음: 글자 수 제한(닉네임 2~20, 제목 60, 설명 2000, 댓글 1000), 구매자가 확인한 거래는 삭제·상태 변경 불가, 사진 버킷은 공개
+
+## 2026-11-15 · dugongjoon · 기능 1 이메일 인증
+
+프롬프트:
+> There're currently 6 MVPs, which one should I start first?
+>
+> log into my github account and work there
+
+추가 확인:
+> Not sure—include setup instructions
+
+결과 / 메모:
+- 기능 1을 먼저 진행하기로 안내한 뒤 GitHub 연결과 저장소 쓰기 권한 확인.
+- BU 이메일 → 6자리 코드 → 닉네임 설정, 새로고침 후 로그인 유지, 로그아웃 구현.
+- 인증/닉네임 유무에 따라 화면 이동, 코드 재발송 대기, 오류·닉네임 중복 안내 추가.
+- 공유 파일 변경: `src/App.tsx`, `src/components/AppLayout.tsx`, `src/components/AuthGuard.tsx`, `src/components/SignOutButton.tsx`, `src/lib/supabase.ts`.
+- 기존 DB의 BU 이메일 제한·프로필 접근 규칙 사용. `supabase/schema.sql`, `package.json`, npm 잠금 파일은 변경하지 않음.
+- `docs/auth-setup.md`에 Supabase·Resend SMTP·OTP 템플릿 설정 및 실제 BU 계정 2개 테스트 절차 기록.
+- 실제 Supabase 접속 정보가 없어 메일 발송·운영 DB 접근 규칙은 미검증. 다음 기능 전 실제 계정 테스트 필요.
+- 검증: TypeScript·Vite 빌드, oxlint, 모의 Supabase API를 사용한 모바일 Chrome 브라우저 시나리오 10개 통과.
+
+## 2026-11-15 · dugongjoon · 기능 1·2 범위 확정 및 물건 등록·수정·삭제
+
+프롬프트:
+> continue and again don't fix the exsiting code just execute the two scopes i mentioend
+
+결과 / 메모:
+- 범위를 BU 이메일 6자리 인증과 물건 등록·수정·삭제(사진 1~3장)로 한정.
+- 기존 글 등록/수정 자리에서 폼 구현. 사진 미리보기·브라우저 JPEG 압축, 제목·달러 정수 가격·카테고리·거래 장소·설명 입력.
+- `내 활동`에 본인 글 관리 컴포넌트만 연결. 소유자 검사, 삭제 확인, 저장 실패 처리, 미사용 사진 정리 추가.
+- 기존 `supabase/schema.sql`은 그대로 사용. 사진 삭제에 필요한 본인 파일 SELECT 정책을 `supabase/listing-images-policy.sql`에 별도 추가.
+- 추가 공유 파일: `src/components/MyListings.tsx`. `src/pages/MyActivityPage.tsx`에 이 컴포넌트 연결.
+- 패키지, 기존 DB 스키마, 목록/검색, 상세/댓글, 거래 상태, 평점 기능은 변경하지 않음.
+- 실제 Supabase 접속 정보가 없어 운영 데이터 쓰기·메일·RLS 검증은 하지 않음. 두 기능의 설정/실계정 테스트 방법을 docs에 기록.
+- 검증: TypeScript·Vite 빌드, oxlint, 모의 API 기반 인증 10개·등록/수정/삭제 8개 브라우저 시나리오 통과. 빌드의 번들 크기 경고는 기능 범위 밖 최적화라 변경하지 않음.

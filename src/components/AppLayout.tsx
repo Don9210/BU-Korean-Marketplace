@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import SetupBanner from './SetupBanner'
+import SignOutButton from './SignOutButton'
 
 // 화면 아래 메뉴 3개
 const TABS = [
@@ -13,8 +14,9 @@ export default function AppLayout() {
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col bg-white">
       <SetupBanner />
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
         <p className="text-lg font-extrabold text-brand">BU 한인 중고거래</p>
+        <SignOutButton />
       </header>
 
       {/* 각 화면(pages/)이 이 자리에 들어온다 */}

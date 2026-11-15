@@ -54,6 +54,12 @@ bu-market/
 3. Claude Code에서 "개발 서버 켜줘" (또는 `npm install` → `npm run dev`)
 4. 브라우저에서 `http://localhost:5173`
 
+**기능 1 인증 설정:** [Supabase·6자리 코드 메일 설정과 BU 계정 2개 테스트](docs/auth-setup.md).
+로그인·닉네임 설정·보호된 화면 이동은 구현되어 있으며, 실제 메일 발송은 팀 Supabase 설정 후 확인해야 합니다.
+
+**기능 2 등록·수정·삭제:** [사진 저장소 설정과 본인 글 관리 테스트](docs/listings-setup.md).
+`글쓰기`에서 등록하고 `내 활동 → 내 판매 글`에서 수정·삭제합니다.
+
 ## 팀 작업 규칙
 
 - **자기 기능 파일은 자유롭게, 공유 파일은 단톡에 한 줄.** 각자 맡은 화면·기능은 동시에 작업해도 된다. 라우터(`App.tsx`), `package.json`, `supabase/schema.sql`, 공용 부품(`components/`)처럼 셋이 다 건드리는 파일을 고칠 땐 단톡에 "라우터에 상세 페이지 추가함, pull 해" 한 줄.

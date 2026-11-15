@@ -1,8 +1,11 @@
 import PagePlaceholder from '../components/PagePlaceholder'
+import MyListings from '../components/MyListings'
 
 // 화면 7 · 내 활동 — 기능 5, 6
 export default function MyActivityPage() {
   return (
+    <>
+    <MyListings />
     <PagePlaceholder
       number={7}
       title="내 활동"
@@ -16,5 +19,6 @@ export default function MyActivityPage() {
         '로그아웃 버튼',
       ]}
     />
+    </>
   )
 }
