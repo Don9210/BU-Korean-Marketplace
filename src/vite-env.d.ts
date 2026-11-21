@@ -4,6 +4,8 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string
   readonly VITE_SUPABASE_ANON_KEY: string
+  /** 시연용 체험 계정의 비밀번호. 없으면 체험 계정 버튼이 보이지 않는다. */
+  readonly VITE_DEMO_PASSWORD?: string
 }
 
 interface ImportMeta {

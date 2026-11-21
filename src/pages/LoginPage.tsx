@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
+import DemoLogin from '../components/DemoLogin'
 import { authErrorMessage, isBuEmail, normalizeEmail, readPendingOtp, rememberOtp } from '../lib/auth-helpers'
 import { isSupabaseReady, supabase } from '../lib/supabase'
 
@@ -37,6 +38,7 @@ export default function LoginPage() {
   }
 
   return (
+    <>
     <section className="px-4 py-8">
       <h1 className="text-xl font-bold">BU 이메일로 시작하기</h1>
       <p className="mt-2 text-sm leading-6 text-gray-600">학교 이메일로 인증 코드를 보내드려요. 비밀번호는 필요 없어요.</p>
@@ -54,5 +56,7 @@ export default function LoginPage() {
         <Button type="submit" disabled={busy || !isSupabaseReady}>{busy ? '코드 보내는 중…' : '인증 코드 받기'}</Button>
       </form>
     </section>
+    <DemoLogin />{/* 시연용 체험 계정. .env 에 VITE_DEMO_PASSWORD 가 있을 때만 보인다 */}
+    </>
   )
 }

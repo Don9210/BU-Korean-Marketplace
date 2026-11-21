@@ -130,6 +130,8 @@ Deno.serve(async (req) => {
       .select('email').eq('id', recipient.userId).maybeSingle()
     if (profileError) throw profileError
     if (!profile?.email) return json({ skipped: 'no email' })
+    // 시연용 체험 계정(src/components/DemoLogin.tsx)은 실제 메일함이 없는 주소라 보내지 않는다.
+    if (profile.email.startsWith('bumarket-demo-')) return json({ skipped: 'demo account' })
 
     const appUrl = (Deno.env.get('APP_URL') || 'https://bu-korean-marketplace.vercel.app').replace(/\/+$/, '')
     const mail = buildEmail(listing.title, `${appUrl}/listings/${listing.id}`, recipient.role)
