@@ -367,7 +367,11 @@ alter table public.ratings  enable row level security;
 -- 먼저 전부 거두고, 필요한 것만 다시 준다. (프로젝트 기본 설정이 무엇이든 결과가 같아진다)
 revoke all on public.profiles, public.listings, public.comments, public.ratings from anon, authenticated;
 
-grant select                 on public.profiles to authenticated;
+-- profiles 는 이메일(email) 칸만 빼고 읽게 한다. 이메일은 다른 가입자에게 보이면 안 된다.
+-- 내 이메일은 화면이 로그인 정보에서 가져오고, 알림 메일을 보내는 서버 함수는 관리자 역할로 읽는다.
+-- 주의: 이 때문에 화면에서 profiles 를 select('*') 로 요청하면 실패한다. 칸 이름을 적어서 요청할 것.
+grant select (id, nickname, rating_avg, rating_count, completed_count, created_at)
+  on public.profiles to authenticated;
 grant update (nickname)      on public.profiles to authenticated;
 
 grant select, insert, delete on public.listings to authenticated;
@@ -383,7 +387,7 @@ grant select, insert         on public.ratings  to authenticated;
 grant all on public.profiles, public.listings, public.comments, public.ratings to service_role;
 
 -- 5-1. profiles
---   읽기: 로그인 사용자 누구나 / 수정: 본인의 닉네임만
+--   읽기: 로그인 사용자 누구나 (이메일 칸 제외, 위 grant 참고) / 수정: 본인의 닉네임만
 --   completed_count, rating_avg, rating_count 는 trigger 만 바꾼다
 drop policy if exists "profiles: 로그인 사용자 읽기" on public.profiles;
 create policy "profiles: 로그인 사용자 읽기" on public.profiles

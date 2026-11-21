@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/auth-context'
 import { supabase } from '../lib/supabase'
-import type { Profile } from '../lib/types'
+import { PROFILE_COLUMNS, type Profile } from '../lib/types'
 import RatingSummary from './RatingSummary'
 
 interface Props {
@@ -20,7 +20,7 @@ export default function MyProfileCard({ refreshKey = 0 }: Props) {
     if (!userId) return
     let active = true
     void (async () => {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+      const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle()
       if (active && !error && data) setFresh(data as Profile)
     })()
     return () => { active = false }
@@ -32,7 +32,7 @@ export default function MyProfileCard({ refreshKey = 0 }: Props) {
   return (
     <section className="border-b border-gray-200 p-4">
       <h1 className="text-xl font-bold">{profile.nickname || '닉네임 없음'}</h1>
-      <p className="mt-1 text-xs text-gray-500">{profile.email}</p>
+      <p className="mt-1 text-xs text-gray-500">{session?.user.email}</p>
       <div className="mt-3 flex items-center gap-4">
         <RatingSummary ratingAvg={profile.rating_avg} ratingCount={profile.rating_count} />
         <span className="text-sm text-gray-800">거래 완료 {profile.completed_count}회</span>

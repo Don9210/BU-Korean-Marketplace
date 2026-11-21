@@ -2,9 +2,11 @@ import type { Category, ListingStatus, Place } from './constants'
 
 // DB 테이블 4개의 한 줄(행) 모양. supabase/schema.sql 과 똑같이 맞춘다.
 
+/** 화면이 읽을 수 있는 profiles 칸. 이메일(email) 칸은 DB 가 막아 두어서 '*' 로 요청하면 실패한다. */
+export const PROFILE_COLUMNS = 'id, nickname, rating_avg, rating_count, completed_count, created_at'
+
 export interface Profile {
   id: string
-  email: string
   nickname: string | null // 첫 로그인 직후에는 아직 없다
   rating_avg: number | null // 평점이 없으면 null → "아직 평가 없음"
   rating_count: number

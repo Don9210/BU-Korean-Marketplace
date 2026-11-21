@@ -89,3 +89,9 @@
 - `DealSection`은 상세 화면(기능 4)이 생기면 한 줄로 끼운다. 방법은 `docs/deals-ratings-setup.md`.
 - 같은 날 `supabase/schema.sql`에 사진 읽기 규칙을 합침(`listing-images-policy.sql`과 같은 내용).
 - 검증: 빌드, oxlint, 가짜 데이터(모의 API)로 폰 화면 동작 확인. 실제 Supabase 로그인 상태 테스트는 인증 메일 설정 후에 해야 함.
+
+## 2026-11-21 · 이동원 · 다른 사람 이메일을 읽지 못하게 DB 권한 좁히기
+
+- 요청: "(로그인한 사람이 API 로 다른 사람의 이메일을 읽을 수 있는 규칙) 이거는 고쳐야겠다."
+- 결과: `schema.sql` 에서 `profiles` 읽기 권한을 이메일 칸만 빼고 주도록 변경. 화면은 `PROFILE_COLUMNS` 로 필요한 칸만 요청하고, 내 이메일은 로그인 정보에서 가져옴 (`types.ts`, `auth.tsx`, `MyProfileCard.tsx`).
+- 확인: 빌드·린트 통과, 테스트용 DB 에서 10개 검사 통과. 실제 Supabase 에는 SQL 실행 필요.

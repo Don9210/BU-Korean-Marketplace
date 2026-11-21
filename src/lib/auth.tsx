@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { AuthContext } from './auth-context'
 import { clearPendingOtp, isBuEmail, nicknameError } from './auth-helpers'
 import { isSupabaseReady, supabase } from './supabase'
-import type { Profile } from './types'
+import { PROFILE_COLUMNS, type Profile } from './types'
 
 interface ProfileResult {
   userId: string
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     void (async () => {
       try {
-        const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+        const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).single()
         if (error) throw error
         if (active) setProfileResult({ userId, data: data as Profile, error: null })
       } catch {
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const validationError = nicknameError(nickname)
     if (validationError) throw new Error(validationError)
     const { data, error } = await supabase.from('profiles')
-      .update({ nickname }).eq('id', userId).select('*').single()
+      .update({ nickname }).eq('id', userId).select(PROFILE_COLUMNS).single()
     if (error) throw error
     if (currentUserId.current === userId) {
       setProfileResult({ userId, data: data as Profile, error: null })
