@@ -1,4 +1,4 @@
-import { useEffect, useState, type UIEvent } from 'react'
+import { useEffect, useRef, useState, type UIEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import Button from '../components/Button'
 import DealSection from '../components/DealSection'
@@ -102,52 +102,67 @@ function ListingDetail({ id, userId }: { id: string; userId: string }) {
 
   return (
     <article>
-      <div className="px-4 py-1">
+      <div className="px-4 py-1 md:px-6 md:py-2">
         <button type="button" onClick={goBack} className="min-h-10 pr-2 text-sm text-gray-600">← 목록</button>
       </div>
 
-      <PhotoSlider urls={listing.image_urls} title={listing.title} grayscale={completed} />
-
-      <section className="p-4">
-        <div className="flex items-center gap-2">
-          <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[listing.status]}`}>
-            {STATUS_LABELS[listing.status]}
-          </span>
-          <span className="text-xs text-gray-500">
-            {listing.category} · {new Date(listing.created_at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 등록
-          </span>
+      {/* 넓은 화면에서는 왼쪽에 사진, 오른쪽에 정보·댓글을 나란히 둔다 */}
+      <div className="md:grid md:grid-cols-2 md:items-start md:gap-6 md:px-6">
+        <div className="md:sticky md:top-20 md:overflow-hidden md:rounded-xl">
+          <PhotoSlider urls={listing.image_urls} title={listing.title} grayscale={completed} />
         </div>
-        <h1 className="mt-2 break-words text-xl font-bold text-gray-900">{listing.title}</h1>
-        <p className="mt-1 text-xl font-extrabold text-gray-900">{formatPrice(listing.price)}</p>
-        <p className="mt-2 text-sm text-gray-700">📍 거래 장소: {listing.place}</p>
-        {listing.description ? (
-          <p className="mt-4 whitespace-pre-wrap break-words text-base leading-relaxed text-gray-800">{listing.description}</p>
-        ) : (
-          <p className="mt-4 text-sm text-gray-400">설명이 없어요.</p>
-        )}
-        {isSeller && (
-          <Link
-            to={`/listings/${listing.id}/edit`}
-            className="mt-4 block rounded-lg border border-gray-300 px-4 py-3 text-center text-base font-semibold text-gray-800 active:bg-gray-100"
-          >
-            글 수정·삭제
-          </Link>
-        )}
-      </section>
 
-      <SellerCard seller={seller} isMe={isSeller} />
+        <div className="min-w-0">
+          <section className="p-4 md:pt-0">
+            <div className="flex items-center gap-2">
+              <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[listing.status]}`}>
+                {STATUS_LABELS[listing.status]}
+              </span>
+              <span className="text-xs text-gray-500">
+                {listing.category} · {new Date(listing.created_at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 등록
+              </span>
+            </div>
+            <h1 className="mt-2 break-words text-xl font-bold text-gray-900">{listing.title}</h1>
+            <p className="mt-1 text-xl font-extrabold text-gray-900">{formatPrice(listing.price)}</p>
+            <p className="mt-2 text-sm text-gray-700">📍 거래 장소: {listing.place}</p>
+            {listing.description ? (
+              <p className="mt-4 whitespace-pre-wrap break-words text-base leading-relaxed text-gray-800">{listing.description}</p>
+            ) : (
+              <p className="mt-4 text-sm text-gray-400">설명이 없어요.</p>
+            )}
+            {isSeller && (
+              <Link
+                to={`/listings/${listing.id}/edit`}
+                className="mt-4 block rounded-lg border border-gray-300 px-4 py-3 text-center text-base font-semibold text-gray-800 active:bg-gray-100"
+              >
+                글 수정·삭제
+              </Link>
+            )}
+          </section>
 
-      {/* 기능 5: 판매자에게는 상태 버튼, 선택된 구매자에게는 거래 확인 버튼. 그 밖의 사람에게는 안 보인다. */}
-      <DealSection listing={listing} onChanged={setListing} />
+          <SellerCard seller={seller} isMe={isSeller} />
 
-      <SecretComments listing={listing} userId={userId} />
+          {/* 기능 5: 판매자에게는 상태 버튼, 선택된 구매자에게는 거래 확인 버튼. 그 밖의 사람에게는 안 보인다. */}
+          <DealSection listing={listing} onChanged={setListing} />
+
+          <SecretComments listing={listing} userId={userId} />
+        </div>
+      </div>
     </article>
   )
 }
 
-/** 사진 1~3장. 옆으로 밀어서 넘긴다. */
+/** 사진 1~3장. 폰에서는 옆으로 밀어서, 넓은 화면에서는 ‹ › 버튼으로 넘긴다. */
 function PhotoSlider({ urls, title, grayscale }: { urls: string[]; title: string; grayscale: boolean }) {
   const [index, setIndex] = useState(0)
+  const box = useRef<HTMLDivElement>(null)
+  const current = Math.min(index, urls.length - 1)
+
+  /** 버튼으로 앞/뒤 사진으로 넘긴다 (마우스로는 옆으로 밀기 어렵기 때문) */
+  function go(step: number) {
+    const target = Math.max(0, Math.min(urls.length - 1, current + step))
+    box.current?.scrollTo({ left: target * box.current.clientWidth, behavior: 'smooth' })
+  }
 
   function handleScroll(event: UIEvent<HTMLDivElement>) {
     const box = event.currentTarget
@@ -156,7 +171,7 @@ function PhotoSlider({ urls, title, grayscale }: { urls: string[]; title: string
 
   return (
     <div className="relative bg-gray-100">
-      <div onScroll={handleScroll} className="flex snap-x snap-mandatory overflow-x-auto">
+      <div ref={box} onScroll={handleScroll} className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]">
         {urls.map((url, i) => (
           <img
             key={`${i}-${url}`}
@@ -168,9 +183,23 @@ function PhotoSlider({ urls, title, grayscale }: { urls: string[]; title: string
       </div>
       {urls.length > 1 && (
         <span className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
-          {Math.min(index, urls.length - 1) + 1} / {urls.length}
+          {current + 1} / {urls.length}
         </span>
       )}
+      {urls.length > 1 && (['prev', 'next'] as const).map((side) => (
+        <button
+          key={side}
+          type="button"
+          aria-label={side === 'prev' ? '이전 사진' : '다음 사진'}
+          onClick={() => go(side === 'prev' ? -1 : 1)}
+          disabled={side === 'prev' ? current === 0 : current === urls.length - 1}
+          className={`absolute top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl text-gray-800 shadow disabled:opacity-30 md:flex ${
+            side === 'prev' ? 'left-3' : 'right-3'
+          }`}
+        >
+          {side === 'prev' ? '‹' : '›'}
+        </button>
+      ))}
     </div>
   )
 }

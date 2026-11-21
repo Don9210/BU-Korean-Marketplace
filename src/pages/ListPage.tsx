@@ -92,11 +92,11 @@ export default function ListPage() {
   }
 
   return (
-    <section className="p-4">
+    <section className="p-4 md:p-6">
       <h1 className="sr-only">물건 목록</h1>
 
       {/* 검색: 입력 후 검색 버튼(또는 키보드의 검색 키)을 누르면 적용 */}
-      <form role="search" onSubmit={handleSearch} className="flex gap-2">
+      <form role="search" onSubmit={handleSearch} className="flex gap-2 md:max-w-xl">
         <label htmlFor="listing-search" className="sr-only">물건 이름 검색</label>
         <input
           id="listing-search"
@@ -114,8 +114,8 @@ export default function ListPage() {
         </button>
       </form>
 
-      {/* 카테고리 필터: 옆으로 밀어서 더 볼 수 있다 */}
-      <div role="group" aria-label="카테고리" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
+      {/* 카테고리 필터: 폰에서는 옆으로 밀어서 더 보고, 넓은 화면에서는 여러 줄로 다 보인다 */}
+      <div role="group" aria-label="카테고리" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
         {[null, ...CATEGORIES].map((value) => {
           const selected = category === value
           return (
@@ -192,7 +192,7 @@ export default function ListPage() {
           </div>
         )
       ) : (
-        <ul aria-busy={loading} className={`mt-2 divide-y divide-gray-100 ${loading ? 'opacity-50' : ''}`}>
+        <ul aria-busy={loading} className={`mt-2 divide-y divide-gray-100 md:mt-4 md:grid md:grid-cols-3 md:gap-x-5 md:gap-y-8 md:divide-y-0 lg:grid-cols-4 ${loading ? 'opacity-50' : ''}`}>
           {listings.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
         </ul>
       )}
@@ -200,18 +200,21 @@ export default function ListPage() {
   )
 }
 
-/** 물건 카드 한 장: 대표 사진(첫 장) · 제목 · 카테고리 · 장소 · 상태 · 가격. 누르면 상세 화면. */
+/**
+ * 물건 카드 한 장: 대표 사진(첫 장) · 제목 · 카테고리 · 장소 · 상태 · 가격. 누르면 상세 화면.
+ * 폰에서는 사진이 왼쪽인 한 줄, 넓은 화면에서는 사진이 위인 카드(격자).
+ */
 function ListingCard({ listing }: { listing: Listing }) {
   const done = listing.status === 'completed' // 거래완료 글은 회색으로 보여 준다
 
   return (
     <li>
-      <Link to={`/listings/${listing.id}`} className={`flex gap-3 py-4 active:bg-gray-50 ${done ? 'opacity-60' : ''}`}>
+      <Link to={`/listings/${listing.id}`} className={`flex gap-3 py-4 active:bg-gray-50 md:flex-col md:gap-2 md:py-0 ${done ? 'opacity-60' : ''}`}>
         <img
           src={listing.image_urls[0]}
           alt=""
           loading="lazy"
-          className={`h-24 w-24 shrink-0 rounded-lg border border-gray-100 bg-gray-100 object-cover ${done ? 'grayscale' : ''}`}
+          className={`h-24 w-24 shrink-0 rounded-lg border border-gray-100 bg-gray-100 object-cover md:aspect-square md:h-auto md:w-full ${done ? 'grayscale' : ''}`}
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-gray-900">{listing.title}</p>

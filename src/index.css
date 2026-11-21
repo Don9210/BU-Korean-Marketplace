@@ -14,7 +14,7 @@ body,
 
 body {
   margin: 0;
-  background: #e5e7eb; /* 폰 화면 바깥(PC 에서 볼 때) 배경 */
+  background: #e5e7eb; /* 내용 바깥 배경 (화면이 내용보다 넓을 때 보인다) */
   font-family:
     -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR',
     system-ui, sans-serif;

@@ -118,7 +118,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
 
   if (loading) return <p role="status" className="p-4 text-sm text-gray-600">글을 불러오고 있어요…</p>
   if (loadError) return (
-    <section className="space-y-4 p-4">
+    <section className="mx-auto max-w-xl space-y-4 p-4 md:py-8">
       <p role="alert">{loadError}</p>
       <Button onClick={() => { setLoading(true); setLoadError(''); setRetry((value) => value + 1) }}>다시 시도</Button>
       <Link to="/me" className="block py-3 text-brand underline">내 활동으로</Link>
@@ -126,7 +126,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
   )
 
   return (
-    <section className="p-4">
+    <section className="mx-auto max-w-xl p-4 md:py-8">
       <h1 className="text-xl font-bold">{id ? '글 수정' : '물건 등록'}</h1>
       <form onSubmit={handleSave} className="mt-6 space-y-5" noValidate>
         <fieldset disabled={locked} className="space-y-5 disabled:opacity-70">

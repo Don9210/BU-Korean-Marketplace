@@ -13,10 +13,13 @@ export default function MyActivityPage() {
   return (
     <>
       <MyProfileCard refreshKey={confirmedCount} />
+      {/* 넓은 화면에서는 묶음을 2칸으로 나란히 둔다 */}
+      <div className="md:grid md:grid-cols-2 md:items-start md:[&>*:nth-child(odd)]:border-r md:[&>*:nth-child(odd)]:border-gray-200">
       <DealsToConfirm onConfirmed={() => setConfirmedCount((count) => count + 1)} />
       <DealsToRate refreshKey={confirmedCount} />
       <MyListings />
       <MyCommentedListings />{/* 기능 4 */}
+      </div>
     </>
   )
 }

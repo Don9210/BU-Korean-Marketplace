@@ -17,7 +17,7 @@
 - 백엔드: **Supabase** (Auth, Postgres, Storage, Edge Functions). 별도 서버 없음.
 - 메일 발송: **Resend** (인증 코드 메일은 Supabase SMTP 설정으로, 댓글 알림 메일은 Supabase Edge Function에서 Resend API 호출).
 - 배포: **Vercel** (GitHub main에 push하면 자동 배포). 코드 저장: GitHub.
-- 화면은 **폰(모바일) 기준으로만** 만든다. PC 레이아웃에 시간 쓰지 않는다.
+- 화면은 **폰(모바일)을 기준으로** 만들고, 넓은 화면(PC·태블릿, 768px 이상)에서는 Tailwind 의 `md:` 로 배치만 넓힌다(위 메뉴, 격자 목록, 2단 상세). 폰 화면이 달라지면 안 된다. (2026-11-21 어드바이저 피드백으로 변경)
 - 폴더: `src/` 아래에 `pages/`, `components/`, `lib/`(supabase 클라이언트), `supabase/`(schema.sql, functions/).
 
 ## 인증

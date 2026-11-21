@@ -30,7 +30,7 @@ export default function MyProfileCard({ refreshKey = 0 }: Props) {
   if (!profile) return null
 
   return (
-    <section className="border-b border-gray-200 p-4">
+    <section className="border-b border-gray-200 p-4 md:px-6">
       <h1 className="text-xl font-bold">{profile.nickname || '닉네임 없음'}</h1>
       <p className="mt-1 text-xs text-gray-500">{session?.user.email}</p>
       <div className="mt-3 flex items-center gap-4">
