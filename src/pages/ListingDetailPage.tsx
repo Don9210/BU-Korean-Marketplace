@@ -1,23 +1,196 @@
-import { useParams } from 'react-router-dom'
-import PagePlaceholder from '../components/PagePlaceholder'
+import { useEffect, useState, type UIEvent } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import Button from '../components/Button'
+import DealSection from '../components/DealSection'
+import RatingSummary from '../components/RatingSummary'
+import SecretComments from '../components/SecretComments'
+import { useAuth } from '../lib/auth-context'
+import { STATUS_LABELS, formatPrice, type ListingStatus } from '../lib/constants'
+import { supabase } from '../lib/supabase'
+import type { Listing, Profile } from '../lib/types'
 
-// 화면 6 · 상세(+비밀댓글) — 기능 4, 5
+// 화면 6 · 상세(+비밀댓글) — 기능 4
+// 거래 상태 버튼은 기능 5 의 DealSection, 평점 한 줄은 기능 6 의 RatingSummary 를 가져다 쓴다.
+
+type Seller = Pick<Profile, 'id' | 'nickname' | 'rating_avg' | 'rating_count' | 'completed_count'>
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const STATUS_BADGE: Record<ListingStatus, string> = {
+  available: 'bg-red-50 text-brand',
+  reserved: 'bg-green-50 text-green-700',
+  completed: 'bg-gray-200 text-gray-600',
+}
+
+/** 글과 판매자 정보를 불러온다. 글이 없거나 주소가 글 id 모양이 아니면 null. */
+async function loadDetail(id: string): Promise<{ listing: Listing; seller: Seller | null } | null> {
+  if (!UUID_PATTERN.test(id)) return null
+  const { data, error } = await supabase.from('listings').select('*').eq('id', id).maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  const listing = data as Listing
+  const { data: sellerRow, error: sellerError } = await supabase.from('profiles')
+    .select('id, nickname, rating_avg, rating_count, completed_count')
+    .eq('id', listing.seller_id).maybeSingle()
+  if (sellerError) throw sellerError
+  return { listing, seller: sellerRow as Seller | null }
+}
+
 export default function ListingDetailPage() {
   const { id } = useParams()
+  const { session } = useAuth()
+  if (!id || !session) return null
+  // 다른 글로 이동하면 이전 글의 정보가 남지 않도록 처음부터 다시 그린다.
+  return <ListingDetail key={id} id={id} userId={session.user.id} />
+}
+
+function ListingDetail({ id, userId }: { id: string; userId: string }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [listing, setListing] = useState<Listing | null>(null)
+  // DealSection 이 돌려주는 새 글 정보에는 판매자 정보가 없어서, 판매자는 따로 보관한다.
+  const [seller, setSeller] = useState<Seller | null>(null)
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading')
+  const [retry, setRetry] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    void loadDetail(id).then((result) => {
+      if (!active) return
+      if (!result) {
+        setState('missing')
+        return
+      }
+      setListing(result.listing)
+      setSeller(result.seller)
+      setState('ready')
+    }).catch(() => {
+      if (active) setState('error')
+    })
+    return () => { active = false }
+  }, [id, retry])
+
+  /** 앱 안에서 들어왔으면 뒤로 가기(목록의 검색 조건 유지), 주소로 바로 들어왔으면 홈으로 */
+  function goBack() {
+    if (location.key !== 'default') navigate(-1)
+    else navigate('/')
+  }
+
+  if (state === 'loading') {
+    return <p role="status" className="p-4 text-sm text-gray-600">글을 불러오고 있어요…</p>
+  }
+  if (state === 'error') {
+    return (
+      <section className="space-y-4 p-4">
+        <p role="alert" className="text-sm text-red-700">글을 불러오지 못했어요. 다시 시도해 주세요.</p>
+        <Button onClick={() => { setState('loading'); setRetry((count) => count + 1) }}>다시 시도</Button>
+        <Link to="/" className="block py-3 text-sm text-gray-600 underline">목록으로</Link>
+      </section>
+    )
+  }
+  if (state === 'missing' || !listing) {
+    return (
+      <section className="space-y-2 p-4">
+        <p className="text-base font-semibold">글이 없거나 삭제됐어요.</p>
+        <Link to="/" className="inline-block py-3 text-sm font-semibold text-brand underline">목록으로</Link>
+      </section>
+    )
+  }
+
+  const isSeller = userId === listing.seller_id
+  const completed = listing.status === 'completed'
 
   return (
-    <PagePlaceholder
-      number={6}
-      title="상세"
-      file="src/pages/ListingDetailPage.tsx"
-      todos={[
-        `글 불러오기 (지금 주소의 글 id: ${id})`,
-        '사진 · 제목 · 가격 · 설명, 판매자 닉네임 · 인증 뱃지 · 거래 완료 횟수 · 평점',
-        '비밀댓글: 글쓴이와 댓글 작성자만 보임. 한 댓글 아래에서 답글 여러 번 주고받기',
-        '댓글 입력란 안내 문구: "댓글은 판매자와 나만 볼 수 있어요"',
-        '내 글이면: 수정 · 삭제 · 상태 변경(판매중/예약중/거래완료), 완료 시 구매자 선택',
-      ]}
-      links={[{ to: `/listings/${id}/edit`, label: '이 글 수정 화면' }]}
-    />
+    <article>
+      <div className="px-4 py-1">
+        <button type="button" onClick={goBack} className="min-h-10 pr-2 text-sm text-gray-600">← 목록</button>
+      </div>
+
+      <PhotoSlider urls={listing.image_urls} title={listing.title} grayscale={completed} />
+
+      <section className="p-4">
+        <div className="flex items-center gap-2">
+          <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[listing.status]}`}>
+            {STATUS_LABELS[listing.status]}
+          </span>
+          <span className="text-xs text-gray-500">
+            {listing.category} · {new Date(listing.created_at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 등록
+          </span>
+        </div>
+        <h1 className="mt-2 break-words text-xl font-bold text-gray-900">{listing.title}</h1>
+        <p className="mt-1 text-xl font-extrabold text-gray-900">{formatPrice(listing.price)}</p>
+        <p className="mt-2 text-sm text-gray-700">📍 거래 장소: {listing.place}</p>
+        {listing.description ? (
+          <p className="mt-4 whitespace-pre-wrap break-words text-base leading-relaxed text-gray-800">{listing.description}</p>
+        ) : (
+          <p className="mt-4 text-sm text-gray-400">설명이 없어요.</p>
+        )}
+        {isSeller && (
+          <Link
+            to={`/listings/${listing.id}/edit`}
+            className="mt-4 block rounded-lg border border-gray-300 px-4 py-3 text-center text-base font-semibold text-gray-800 active:bg-gray-100"
+          >
+            글 수정·삭제
+          </Link>
+        )}
+      </section>
+
+      <SellerCard seller={seller} isMe={isSeller} />
+
+      {/* 기능 5: 판매자에게는 상태 버튼, 선택된 구매자에게는 거래 확인 버튼. 그 밖의 사람에게는 안 보인다. */}
+      <DealSection listing={listing} onChanged={setListing} />
+
+      <SecretComments listing={listing} userId={userId} />
+    </article>
+  )
+}
+
+/** 사진 1~3장. 옆으로 밀어서 넘긴다. */
+function PhotoSlider({ urls, title, grayscale }: { urls: string[]; title: string; grayscale: boolean }) {
+  const [index, setIndex] = useState(0)
+
+  function handleScroll(event: UIEvent<HTMLDivElement>) {
+    const box = event.currentTarget
+    setIndex(Math.round(box.scrollLeft / Math.max(1, box.clientWidth)))
+  }
+
+  return (
+    <div className="relative bg-gray-100">
+      <div onScroll={handleScroll} className="flex snap-x snap-mandatory overflow-x-auto">
+        {urls.map((url, i) => (
+          <img
+            key={`${i}-${url}`}
+            src={url}
+            alt={`${title} 사진 ${i + 1}`}
+            className={`aspect-square w-full shrink-0 snap-center object-cover ${grayscale ? 'grayscale' : ''}`}
+          />
+        ))}
+      </div>
+      {urls.length > 1 && (
+        <span className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
+          {Math.min(index, urls.length - 1) + 1} / {urls.length}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** 판매자 정보: 닉네임 · BU 인증 뱃지 · 평점 · 거래 완료 횟수 */
+function SellerCard({ seller, isMe }: { seller: Seller | null; isMe: boolean }) {
+  return (
+    <section aria-label="판매자 정보" className="border-t border-gray-200 p-4">
+      <p className="text-xs font-semibold text-gray-500">판매자</p>
+      <div className="mt-1 flex items-center gap-2">
+        <p className="text-base font-bold text-gray-900">
+          {seller?.nickname || '알 수 없음'}{isMe && ' (나)'}
+        </p>
+        {/* 가입은 bu.edu 인증을 거친 사람만 할 수 있어서 모든 판매자가 인증된 학생이다. */}
+        <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs font-semibold text-blue-700">✔ BU 인증</span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <RatingSummary ratingAvg={seller?.rating_avg ?? null} ratingCount={seller?.rating_count ?? 0} />
+        <span className="text-sm text-gray-800">거래 완료 {seller?.completed_count ?? 0}회</span>
+      </div>
+    </section>
   )
 }

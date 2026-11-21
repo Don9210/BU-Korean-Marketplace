@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import DealsToConfirm from '../components/DealsToConfirm'
 import DealsToRate from '../components/DealsToRate'
+import MyCommentedListings from '../components/MyCommentedListings'
 import MyListings from '../components/MyListings'
 import MyProfileCard from '../components/MyProfileCard'
 
@@ -15,7 +16,7 @@ export default function MyActivityPage() {
       <DealsToConfirm onConfirmed={() => setConfirmedCount((count) => count + 1)} />
       <DealsToRate refreshKey={confirmedCount} />
       <MyListings />
-      {/* TODO(기능 4): "내가 댓글 단 글" 목록을 여기에 추가한다. 댓글 기능이 만들어진 뒤에 가능. */}
+      <MyCommentedListings />{/* 기능 4 */}
     </>
   )
 }
