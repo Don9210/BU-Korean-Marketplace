@@ -54,7 +54,7 @@ export default function DemoLogin() {
             disabled={Boolean(busyEmail)}
             onClick={() => handleEnter(account.email)}
           >
-            {busyEmail === account.email ? '들어가는 중…' : `${account.label}로 들어가기`}
+            {busyEmail === account.email ? '들어가는 중…' : `${account.label} 들어가기`}
           </Button>
         ))}
       </div>

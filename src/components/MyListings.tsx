@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
-import { formatPrice } from '../lib/constants'
+import { STATUS_LABELS, formatPrice } from '../lib/constants'
 import { supabase } from '../lib/supabase'
 import type { Listing } from '../lib/types'
 import Button from './Button'
@@ -50,14 +50,23 @@ export default function MyListings() {
       ) : listings.length === 0 ? <p className="py-6 text-sm text-gray-600">아직 등록한 물건이 없어요.</p> : (
         <ul className="mt-3 divide-y divide-gray-100">
           {listings.map((listing) => (
-            <li key={listing.id}>
-              <Link to={`/listings/${listing.id}/edit`} className="flex items-center gap-3 py-4">
+            <li key={listing.id} className="flex items-center gap-2">
+              {/* 글을 누르면 상세 화면(댓글 · 거래 상태)으로, 오른쪽 "수정·삭제"는 수정 화면으로 간다 */}
+              <Link
+                to={`/listings/${listing.id}`}
+                className={`flex min-w-0 flex-1 items-center gap-3 py-4 ${listing.status === 'completed' ? 'opacity-60' : ''}`}
+              >
                 <img src={listing.image_urls[0]} alt="" className="h-16 w-16 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{listing.title}</p>
-                  <p className="mt-1 text-sm">{formatPrice(listing.price)}</p>
+                  <p className="mt-1 text-sm">
+                    {formatPrice(listing.price)}
+                    <span className="ml-2 text-xs text-gray-600">{STATUS_LABELS[listing.status]}</span>
+                  </p>
                 </div>
-                <span className="text-xs text-brand">수정·삭제</span>
+              </Link>
+              <Link to={`/listings/${listing.id}/edit`} className="shrink-0 px-2 py-3 text-xs font-semibold text-brand">
+                수정·삭제
               </Link>
             </li>
           ))}
