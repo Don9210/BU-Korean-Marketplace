@@ -9,11 +9,14 @@ import Button from './Button'
 
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? ''
 
-/** 실제 BU 주소와 겹치지 않도록 긴 이름을 쓴다. 대시보드에서 만드는 계정의 이메일과 같아야 한다. */
+/**
+ * 실제 BU 주소와 겹치지 않도록 긴 이름을 쓴다. 대시보드에서 만드는 계정의 이메일과 같아야 한다.
+ * label 은 그 계정의 닉네임과 같게 적는다. (닉네임은 계정에 처음 들어갔을 때 정한 값)
+ */
 const DEMO_ACCOUNTS = [
-  { label: '체험 계정 1', email: 'bumarket-demo-1@bu.edu' },
-  { label: '체험 계정 2', email: 'bumarket-demo-2@bu.edu' },
-  { label: '체험 계정 3', email: 'bumarket-demo-3@bu.edu' },
+  { label: '체험판매자', hint: '예시 글을 올린 판매자', email: 'bumarket-demo-1@bu.edu' },
+  { label: '체험구매자A', hint: '댓글을 달고 거래한 구매자', email: 'bumarket-demo-2@bu.edu' },
+  { label: '체험구매자B', hint: '댓글만 단 구매자', email: 'bumarket-demo-3@bu.edu' },
 ]
 
 /** 로그인 화면 아래의 "체험 계정으로 둘러보기". 누르면 메일 인증 없이 그 계정으로 들어간다. */
@@ -54,7 +57,12 @@ export default function DemoLogin() {
             disabled={Boolean(busyEmail)}
             onClick={() => handleEnter(account.email)}
           >
-            {busyEmail === account.email ? '들어가는 중…' : `${account.label} 들어가기`}
+            {busyEmail === account.email ? '들어가는 중…' : (
+              <>
+                {account.label}
+                <span className="ml-2 text-xs font-normal text-gray-500">{account.hint}</span>
+              </>
+            )}
           </Button>
         ))}
       </div>
