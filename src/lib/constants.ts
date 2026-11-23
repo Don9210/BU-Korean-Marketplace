@@ -6,7 +6,7 @@ export const CATEGORIES = ['가구', '주방용품', '교재', '전자기기', '
 export type Category = (typeof CATEGORIES)[number]
 
 /** 거래 장소 */
-export const PLACES = ['GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', '기타'] as const
+export const PLACES = ['GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', 'FitRec 앞', '기타'] as const
 export type Place = (typeof PLACES)[number]
 
 /** 거래 상태. DB 에는 영어 값으로 저장하고 화면에는 한글로 보여 준다. */

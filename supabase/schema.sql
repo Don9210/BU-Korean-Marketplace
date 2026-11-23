@@ -56,7 +56,7 @@ create table if not exists public.listings (
   constraint listings_price_range   check (price >= 0),
   constraint listings_price_krw     check (price_krw is null or (price_krw > 0 and price > 0)),
   constraint listings_category      check (category in ('가구', '주방용품', '교재', '전자기기', '의류', '기타')),
-  constraint listings_place         check (place in ('GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', '기타')),
+  constraint listings_place         check (place in ('GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', 'FitRec 앞', '기타')),
   constraint listings_description   check (char_length(description) <= 2000),
   constraint listings_image_count   check (cardinality(image_urls) between 1 and 5),
   constraint listings_status        check (status in ('available', 'reserved', 'completed')),
@@ -72,6 +72,10 @@ alter table public.listings add constraint listings_price_krw
 alter table public.listings drop constraint if exists listings_image_count;
 alter table public.listings add constraint listings_image_count
   check (cardinality(image_urls) between 1 and 5);
+--   2026-11-23: 거래 장소에 "FitRec 앞" 추가
+alter table public.listings drop constraint if exists listings_place;
+alter table public.listings add constraint listings_place
+  check (place in ('GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', 'FitRec 앞', '기타'));
 
 -- 1-3. comments: 비밀댓글 (parent_id 가 비어 있으면 댓글, 있으면 그 댓글의 답글)
 create table if not exists public.comments (
