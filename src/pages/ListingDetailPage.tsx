@@ -5,7 +5,7 @@ import DealSection from '../components/DealSection'
 import RatingSummary from '../components/RatingSummary'
 import SecretComments from '../components/SecretComments'
 import { useAuth } from '../lib/auth-context'
-import { STATUS_LABELS, formatPrice, type ListingStatus } from '../lib/constants'
+import { STATUS_LABELS, formatKrw, formatPrice, type ListingStatus } from '../lib/constants'
 import { supabase } from '../lib/supabase'
 import type { Listing, Profile } from '../lib/types'
 
@@ -124,6 +124,10 @@ function ListingDetail({ id, userId }: { id: string; userId: string }) {
             </div>
             <h1 className="mt-2 break-words text-xl font-bold text-gray-900">{listing.title}</h1>
             <p className="mt-1 text-xl font-extrabold text-gray-900">{formatPrice(listing.price)}</p>
+            {/* DB 에 원화 칸이 아직 없을 때(값 없음)도 안전하게 넘어간다 */}
+            {Boolean(listing.price_krw) && listing.price_krw !== null && (
+              <p className="mt-1 text-sm text-gray-700">원화로도 받아요 · <span className="font-semibold">{formatKrw(listing.price_krw)}</span></p>
+            )}
             <p className="mt-2 text-sm text-gray-700">📍 거래 장소: {listing.place}</p>
             {listing.description ? (
               <p className="mt-4 whitespace-pre-wrap break-words text-base leading-relaxed text-gray-800">{listing.description}</p>
@@ -152,7 +156,7 @@ function ListingDetail({ id, userId }: { id: string; userId: string }) {
   )
 }
 
-/** 사진 1~3장. 폰에서는 옆으로 밀어서, 넓은 화면에서는 ‹ › 버튼으로 넘긴다. */
+/** 사진 1~5장. 폰에서는 옆으로 밀어서, 넓은 화면에서는 ‹ › 버튼으로 넘긴다. */
 function PhotoSlider({ urls, title, grayscale }: { urls: string[]; title: string; grayscale: boolean }) {
   const [index, setIndex] = useState(0)
   const box = useRef<HTMLDivElement>(null)

@@ -19,6 +19,7 @@ export interface Listing {
   seller_id: string
   title: string
   price: number // 달러 정수. 0 = 무료 나눔
+  price_krw: number | null // 선택. "원화로도 받아요" 금액(원). 없으면 null
   category: Category
   place: Place
   description: string

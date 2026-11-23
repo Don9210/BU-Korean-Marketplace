@@ -6,6 +6,8 @@ import type { Listing } from './types'
 export interface ListingDraft {
   title: string
   price: string
+  /** 선택. 원화로도 받을 때의 금액(원). 비우면 달러로만 거래 */
+  priceKrw: string
   category: Category | ''
   place: Place | ''
   description: string
@@ -18,12 +20,24 @@ export interface ListingPhoto {
   existingUrl?: string
 }
 
+/** 원화 칸에 적은 글자를 숫자로 바꾼다. 쉼표는 허용한다. 비어 있으면 null, 잘못 적었으면 NaN */
+export function parseKrw(text: string): number | null {
+  const digits = text.replace(/[,\s]/g, '')
+  if (!digits) return null
+  return /^\d+$/.test(digits) ? Number(digits) : Number.NaN
+}
+
 export function validateListing(draft: ListingDraft, photoCount: number): string | null {
-  if (photoCount < 1 || photoCount > MAX_IMAGES) return '사진을 1~3장 추가해 주세요.'
+  if (photoCount < 1 || photoCount > MAX_IMAGES) return `사진을 1~${MAX_IMAGES}장 추가해 주세요.`
   const titleLength = Array.from(draft.title.trim()).length
   if (titleLength < 1 || titleLength > 60) return '제목을 1~60자로 입력해 주세요.'
   if (!/^\d+$/.test(draft.price.trim()) || Number(draft.price) > 2147483647) {
     return '가격은 0 이상의 달러 정수로 입력해 주세요. (최대 $2,147,483,647)'
+  }
+  const krw = parseKrw(draft.priceKrw)
+  if (krw !== null) {
+    if (!Number.isInteger(krw) || krw < 1 || krw > 2147483647) return '원화 가격은 숫자만 입력해 주세요. (예: 30000)'
+    if (Number(draft.price) === 0) return '무료 나눔에는 원화 가격을 적을 수 없어요. 원화 칸을 비워 주세요.'
   }
   if (!(CATEGORIES as readonly string[]).includes(draft.category)) return '카테고리를 선택해 주세요.'
   if (!(PLACES as readonly string[]).includes(draft.place)) return '거래 장소를 선택해 주세요.'
@@ -74,7 +88,7 @@ export async function saveListing({ id, userId, original, draft, photos }: {
   }
 
   const values = {
-    title: draft.title.trim(), price: Number(draft.price), category: draft.category,
+    title: draft.title.trim(), price: Number(draft.price), price_krw: parseKrw(draft.priceKrw), category: draft.category,
     place: draft.place, description: draft.description.trim(), image_urls: imageUrls,
   }
   const query = original
@@ -87,7 +101,7 @@ export async function saveListing({ id, userId, original, draft, photos }: {
     // 응답을 잃었어도 저장됐을 수 있다. 확인 없이 사진을 지우지 않는다.
     let persisted: Listing | null = null
     try { persisted = await loadOwnedListing(id, userId) } catch { /* 결과 불명: 사진 보존 */ }
-    if (persisted && persisted.title === values.title && persisted.price === values.price &&
+    if (persisted && persisted.title === values.title && persisted.price === values.price && persisted.price_krw === values.price_krw &&
       persisted.category === values.category && persisted.place === values.place &&
       persisted.description === values.description && JSON.stringify(persisted.image_urls) === JSON.stringify(imageUrls)) {
       saved = persisted

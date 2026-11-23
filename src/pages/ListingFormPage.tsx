@@ -21,7 +21,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
   const navigate = useNavigate()
   const [listingId] = useState(() => id ?? crypto.randomUUID())
   const [original, setOriginal] = useState<Listing | null>(null)
-  const [draft, setDraft] = useState<ListingDraft>({ title: '', price: '', category: '', place: '', description: '' })
+  const [draft, setDraft] = useState<ListingDraft>({ title: '', price: '', priceKrw: '', category: '', place: '', description: '' })
   const [photos, setPhotos] = useState<ListingPhoto[]>([])
   const [loading, setLoading] = useState(Boolean(id))
   const [loadError, setLoadError] = useState('')
@@ -46,7 +46,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
       if (!active) return
       if (!listing) { setLoadError('글이 없거나 수정 권한이 없어요.'); return }
       setOriginal(listing)
-      setDraft({ title: listing.title, price: String(listing.price), category: listing.category, place: listing.place, description: listing.description })
+      setDraft({ title: listing.title, price: String(listing.price), priceKrw: listing.price_krw ? String(listing.price_krw) : '', category: listing.category, place: listing.place, description: listing.description })
       setPhotos(listing.image_urls.map((url) => ({ id: crypto.randomUUID(), previewUrl: url, existingUrl: url })))
     }).catch(() => {
       if (active) setLoadError('글을 불러오지 못했어요. 다시 시도해 주세요.')
@@ -58,7 +58,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
     const files = Array.from(event.target.files ?? [])
     event.target.value = ''
     if (!files.length || locked) return
-    if (photos.length + files.length > MAX_IMAGES) { setError('사진은 최대 3장까지 올릴 수 있어요.'); return }
+    if (photos.length + files.length > MAX_IMAGES) { setError(`사진은 최대 ${MAX_IMAGES}장까지 올릴 수 있어요.`); return }
     setProcessing(true)
     setError('')
     const additions: ListingPhoto[] = []
@@ -131,9 +131,9 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
       <form onSubmit={handleSave} className="mt-6 space-y-5" noValidate>
         <fieldset disabled={locked} className="space-y-5 disabled:opacity-70">
           <div>
-            <label htmlFor="listing-photos" className="block text-sm font-semibold">사진 ({photos.length}/3)</label>
-            <p id="photos-help" className="mt-1 text-xs text-gray-500">사진 1~3장을 추가해 주세요. 첫 사진이 대표 사진이에요.</p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <label htmlFor="listing-photos" className="block text-sm font-semibold">사진 ({photos.length}/{MAX_IMAGES})</label>
+            <p id="photos-help" className="mt-1 text-xs text-gray-500">사진 1~{MAX_IMAGES}장을 추가해 주세요. 첫 사진이 대표 사진이에요.</p>
+            <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-5">
               {photos.map((photo, index) => (
                 <div key={photo.id}>
                   <img src={photo.previewUrl} alt={`사진 ${index + 1}`} className="aspect-square w-full rounded-lg border border-gray-200 object-cover" />
@@ -153,6 +153,10 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
           <label className="block text-sm font-semibold">가격 ($)
             <input type="text" inputMode="numeric" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} required className={INPUT} placeholder="0" aria-describedby="price-help" />
             <span id="price-help" className="mt-1 block text-xs font-normal text-gray-500">달러 정수로 입력해 주세요. 0은 무료 나눔이에요.</span>
+          </label>
+          <label className="block text-sm font-semibold">원화 가격 (₩) <span className="font-normal text-gray-500">· 선택</span>
+            <input type="text" inputMode="numeric" value={draft.priceKrw} onChange={(event) => setDraft({ ...draft, priceKrw: event.target.value })} className={INPUT} placeholder="예: 30000" aria-describedby="krw-help" />
+            <span id="krw-help" className="mt-1 block text-xs font-normal text-gray-500">원화로도 받을 수 있으면 금액을 적어 주세요. 비워 두면 달러로만 거래해요.</span>
           </label>
           <label className="block text-sm font-semibold">카테고리
             <select aria-label="카테고리" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value as Category })} required className={INPUT}>

@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import {
   COMMENT_MAX_LENGTH, addComment, lastActivity, loadThreads, type CommentThread,
 } from '../lib/comments'
@@ -12,6 +12,9 @@ interface Props {
   userId: string
 }
 
+/** 새 댓글을 자동으로 확인하는 간격. 실시간 채팅이 아니라, 열어 둔 화면을 가끔 새로 고치는 정도다. */
+const AUTO_REFRESH_MS = 10_000
+
 /** 댓글 시각: "11월 20일 오후 2:03" */
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -22,6 +25,7 @@ function formatTime(iso: string) {
  * - 판매자: 구매 희망자별 대화가 모두 보이고, 각 대화에 답글을 단다. (자기 글에 새 댓글은 쓰지 않는다)
  * - 그 밖의 사람: 내 대화만 보인다. 대화가 없으면 새 댓글을, 있으면 그 대화에 답글을 단다.
  * 볼 수 있는 댓글은 DB 접근 규칙(RLS)이 걸러서 보내 준다.
+ * 화면을 열어 둔 동안 10초마다 새 댓글을 자동으로 확인한다. ("새 댓글 확인"을 누르면 바로 확인)
  */
 export default function SecretComments({ listing, userId }: Props) {
   const isSeller = userId === listing.seller_id
@@ -30,6 +34,8 @@ export default function SecretComments({ listing, userId }: Props) {
   const [loadError, setLoadError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [reload, setReload] = useState(0)
+  /** 내가 댓글을 보낼 때마다 1씩 늘린다. 보내기 전에 출발한 자동 확인 결과는 낡았으므로 버린다. */
+  const sentCount = useRef(0)
 
   useEffect(() => {
     let active = true
@@ -46,6 +52,38 @@ export default function SecretComments({ listing, userId }: Props) {
     return () => { active = false }
   }, [listing.id, reload])
 
+  // 상대방이 단 댓글이 새로고침 없이도 보이도록, 화면을 보고 있는 동안 10초마다 다시 가져온다.
+  // 다른 탭을 보고 있을 때는 쉬고, 이 탭으로 돌아오면 바로 한 번 확인한다.
+  useEffect(() => {
+    let active = true
+    let running = false
+    async function check() {
+      if (running || document.visibilityState !== 'visible') return
+      running = true
+      const sentBefore = sentCount.current
+      try {
+        const data = await loadThreads(listing.id)
+        if (active && sentBefore === sentCount.current) {
+          setThreads(data.threads)
+          setPeople(data.people)
+          setLoadError('')
+        }
+      } catch {
+        // 자동 확인은 실패해도 조용히 넘어간다. 화면은 그대로 두고 다음 차례에 다시 시도한다.
+      } finally {
+        running = false
+      }
+    }
+    const timer = window.setInterval(() => void check(), AUTO_REFRESH_MS)
+    const onVisible = () => void check()
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [listing.id])
+
   function refresh() {
     if (refreshing) return
     setRefreshing(true)
@@ -54,6 +92,7 @@ export default function SecretComments({ listing, userId }: Props) {
 
   /** 방금 보낸 댓글을 화면에 바로 붙인다. 답글이면 그 대화에, 새 댓글이면 새 대화로. */
   function handleSent(comment: Comment) {
+    sentCount.current += 1
     setThreads((current) => {
       const list = current ?? []
       const next = comment.parent_id

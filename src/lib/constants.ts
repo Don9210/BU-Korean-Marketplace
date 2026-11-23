@@ -19,8 +19,8 @@ export const STATUS_LABELS: Record<ListingStatus, string> = {
   completed: '거래완료',
 }
 
-/** 사진은 최대 3장 */
-export const MAX_IMAGES = 3
+/** 사진은 최대 5장 */
+export const MAX_IMAGES = 5
 
 /** 가입 가능한 이메일 끝자리 */
 export const ALLOWED_EMAIL_DOMAIN = '@bu.edu'
@@ -28,4 +28,9 @@ export const ALLOWED_EMAIL_DOMAIN = '@bu.edu'
 /** 가격 표시: 0 이면 "무료 나눔", 아니면 "$25" */
 export function formatPrice(price: number): string {
   return price === 0 ? '무료 나눔' : `$${price.toLocaleString('en-US')}`
+}
+
+/** 원화 표시: "₩30,000" */
+export function formatKrw(amount: number): string {
+  return `₩${amount.toLocaleString('ko-KR')}`
 }

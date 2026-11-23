@@ -41,6 +41,7 @@ create table if not exists public.listings (
   seller_id           uuid not null references public.profiles (id) on delete cascade,
   title               text not null,
   price               int  not null,           -- 달러 정수. 0 = 무료 나눔
+  price_krw           int,                     -- 선택. "원화로도 받아요" 금액(원). 비우면 달러로만 거래
   category            text not null,
   place               text not null,
   description         text not null default '',
@@ -53,13 +54,24 @@ create table if not exists public.listings (
   created_at          timestamptz not null default now(),
   constraint listings_title_length  check (char_length(btrim(title)) between 1 and 60),
   constraint listings_price_range   check (price >= 0),
+  constraint listings_price_krw     check (price_krw is null or (price_krw > 0 and price > 0)),
   constraint listings_category      check (category in ('가구', '주방용품', '교재', '전자기기', '의류', '기타')),
   constraint listings_place         check (place in ('GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', '기타')),
   constraint listings_description   check (char_length(description) <= 2000),
-  constraint listings_image_count   check (cardinality(image_urls) between 1 and 3),
+  constraint listings_image_count   check (cardinality(image_urls) between 1 and 5),
   constraint listings_status        check (status in ('available', 'reserved', 'completed')),
   constraint listings_buyer_not_me  check (buyer_id is null or buyer_id <> seller_id)
 );
+
+-- 이미 만들어진 DB 에 나중에 추가된 변경 (새 DB 에서는 위 정의와 같아서 아무 일도 일어나지 않는다)
+--   2026-11-23: 원화 가격 칸(price_krw) 추가, 사진 최대 3장 → 5장
+alter table public.listings add column if not exists price_krw int;
+alter table public.listings drop constraint if exists listings_price_krw;
+alter table public.listings add constraint listings_price_krw
+  check (price_krw is null or (price_krw > 0 and price > 0));
+alter table public.listings drop constraint if exists listings_image_count;
+alter table public.listings add constraint listings_image_count
+  check (cardinality(image_urls) between 1 and 5);
 
 -- 1-3. comments: 비밀댓글 (parent_id 가 비어 있으면 댓글, 있으면 그 댓글의 답글)
 create table if not exists public.comments (
@@ -375,7 +387,7 @@ grant select (id, nickname, rating_avg, rating_count, completed_count, created_a
 grant update (nickname)      on public.profiles to authenticated;
 
 grant select, insert, delete on public.listings to authenticated;
-grant update (title, price, category, place, description, image_urls, status, buyer_id, buyer_confirmed_at)
+grant update (title, price, price_krw, category, place, description, image_urls, status, buyer_id, buyer_confirmed_at)
   on public.listings to authenticated;
 
 grant select, insert, delete on public.comments to authenticated;
