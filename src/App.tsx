@@ -36,6 +36,7 @@ export default function App() {
             <Route path="/listings/:id" element={<ListingDetailPage />} />
             <Route path="/listings/:id/edit" element={<ListingFormPage />} />
             <Route path="/me" element={<MyActivityPage />} />
+            <Route path="/profile/edit" element={<ProfileSetupPage editing />} />
           </Route>
         </Route>
 

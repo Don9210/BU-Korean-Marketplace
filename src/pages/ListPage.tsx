@@ -8,14 +8,16 @@ import { supabase } from '../lib/supabase'
 import type { Listing } from '../lib/types'
 
 // 화면 4 · 목록(홈) — 기능 3
-// 검색어·카테고리·정렬은 주소창(예: /?q=책상&category=가구&sort=price)에 저장한다.
+// 검색어·카테고리·정렬·판매중 필터는 주소창(예: /?q=책상&category=가구&sort=price&available=1)에 저장한다.
 // 그래서 상세 화면에 갔다가 뒤로 와도 고른 조건이 그대로 남는다.
 
-type SortOption = 'latest' | 'price'
+type SortOption = 'latest' | 'price' | 'price-desc' | 'rating'
 
 const SORT_LABELS: Record<SortOption, string> = {
   latest: '최신순',
-  price: '가격 낮은 순',
+  price: '가격 낮은순',
+  'price-desc': '가격 높은순',
+  rating: '판매자 평점순',
 }
 
 const STATUS_BADGE: Record<ListingStatus, string> = {
@@ -32,19 +34,26 @@ function escapeLike(text: string) {
 }
 
 /** 조건에 맞는 글을 DB 에서 가져온다. 누가 볼 수 있는지는 DB 접근 규칙(RLS)이 검사한다. */
-async function loadListings(category: Category | null, keyword: string, sort: SortOption) {
-  let query = supabase.from('listings').select('*')
+async function loadListings(category: Category | null, keyword: string, sort: SortOption, availableOnly: boolean) {
+  let query = sort === 'rating'
+    ? supabase.from('listings').select('*, seller:profiles!seller_id(rating_avg)')
+    : supabase.from('listings').select('*')
   if (category) query = query.eq('category', category)
   if (keyword) query = query.ilike('title', `%${escapeLike(keyword)}%`) // 제목에 검색어가 들어간 글
-  query = sort === 'price'
-    ? query.order('price', { ascending: true }).order('created_at', { ascending: false })
-    : query.order('created_at', { ascending: false })
+  if (availableOnly) query = query.eq('status', 'available')
+  if (sort === 'price' || sort === 'price-desc') {
+    query = query.order('price', { ascending: sort === 'price' })
+  } else if (sort === 'rating') {
+    // 판매자의 평균 평점이 높은 글부터. 아직 평점이 없는 판매자는 뒤에 둔다.
+    query = query.order('seller(rating_avg)', { ascending: false, nullsFirst: false })
+  }
+  query = query.order('created_at', { ascending: false })
 
   const { data, error } = await query
   if (error) throw error
   const rows = data as Listing[]
   // DB 정렬로는 "거래완료만 맨 아래"를 할 수 없어서(상태가 알파벳 순서로 정렬됨) 여기서 나눈다.
-  // 나눠도 각 묶음 안의 순서(최신순 / 가격순)는 그대로 유지된다.
+  // 나눠도 각 묶음 안의 순서(최신순 / 가격순 / 평점순)는 그대로 유지된다.
   return [
     ...rows.filter((listing) => listing.status !== 'completed'),
     ...rows.filter((listing) => listing.status === 'completed'),
@@ -56,12 +65,14 @@ export default function ListPage() {
   const q = (searchParams.get('q') ?? '').trim()
   const categoryParam = searchParams.get('category') ?? ''
   const category = (CATEGORIES as readonly string[]).includes(categoryParam) ? categoryParam as Category : null
-  const sort: SortOption = searchParams.get('sort') === 'price' ? 'price' : 'latest'
+  const sortParam = searchParams.get('sort')
+  const sort: SortOption = sortParam === 'price' || sortParam === 'price-desc' || sortParam === 'rating' ? sortParam : 'latest'
+  const availableOnly = searchParams.get('available') === '1'
   const [retry, setRetry] = useState(0)
 
   // 마지막으로 받은 결과. key 는 "어떤 조건으로 받은 결과인지"를 적어 둔 것이다.
   // 조건이 바뀌면 key 가 달라지므로 새 결과가 올 때까지 자동으로 "불러오는 중"이 된다.
-  const requestKey = `${category ?? ''}|${q}|${sort}|${retry}`
+  const requestKey = `${category ?? ''}|${q}|${sort}|${availableOnly}|${retry}`
   const [result, setResult] = useState<{ key: string; listings: Listing[]; error: string } | null>(null)
   const loading = result?.key !== requestKey
   const listings = result?.listings ?? []
@@ -69,14 +80,14 @@ export default function ListPage() {
 
   useEffect(() => {
     let active = true // 화면을 떠났거나 조건이 바뀌었으면 늦게 온 결과는 버린다.
-    void loadListings(category, q, sort)
+    void loadListings(category, q, sort, availableOnly)
       .then((rows) => { if (active) setResult({ key: requestKey, listings: rows, error: '' }) })
       .catch(() => { if (active) setResult({ key: requestKey, listings: [], error: LOAD_ERROR }) })
     return () => { active = false }
-  }, [category, q, sort, requestKey])
+  }, [category, q, sort, availableOnly, requestKey])
 
   /** 주소창의 조건 하나를 바꾼다. 빈 값이면 지운다. (뒤로 가기 기록은 쌓지 않는다) */
-  function updateParam(name: 'q' | 'category' | 'sort', value: string) {
+  function updateParam(name: 'q' | 'category' | 'sort' | 'available', value: string) {
     setSearchParams((current) => {
       const next = new URLSearchParams(current)
       if (value) next.set(name, value)
@@ -134,25 +145,32 @@ export default function ListPage() {
         })}
       </div>
 
-      {/* 결과 개수 + 정렬 */}
-      <div className="mt-2 flex items-center justify-between">
-        <p className="text-sm text-gray-600" aria-live="polite">
-          {loading ? '불러오는 중…' : `물건 ${listings.length}개`}
-        </p>
-        <div role="group" aria-label="정렬" className="flex">
-          {(['latest', 'price'] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              aria-pressed={sort === option}
-              onClick={() => updateParam('sort', option === 'latest' ? '' : option)}
-              className={`min-h-10 px-2 text-sm ${sort === option ? 'font-bold text-gray-900' : 'text-gray-500'}`}
-            >
-              {SORT_LABELS[option]}
-            </button>
+      {/* 판매중 필터 + 정렬 */}
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <label className="flex min-h-11 items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={availableOnly}
+            onChange={(event) => updateParam('available', event.target.checked ? '1' : '')}
+            className="h-4 w-4 accent-brand"
+          />
+          판매중만 보기
+        </label>
+        <label htmlFor="listing-sort" className="sr-only">정렬</label>
+        <select
+          id="listing-sort"
+          value={sort}
+          onChange={(event) => updateParam('sort', event.target.value === 'latest' ? '' : event.target.value)}
+          className="min-h-11 rounded-lg border border-gray-300 bg-white px-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+        >
+          {(['latest', 'price', 'price-desc', 'rating'] as const).map((option) => (
+            <option key={option} value={option}>{SORT_LABELS[option]}</option>
           ))}
-        </div>
+        </select>
       </div>
+      <p className="mt-2 text-sm text-gray-600" aria-live="polite">
+        {loading ? '불러오는 중…' : `물건 ${listings.length}개`}
+      </p>
 
       {q && (
         <p className="mt-1 text-sm text-gray-700">
@@ -172,7 +190,7 @@ export default function ListPage() {
           <Button onClick={() => setRetry((count) => count + 1)}>다시 시도</Button>
         </div>
       ) : !loading && listings.length === 0 ? (
-        q || category ? (
+        q || category || availableOnly ? (
           <div className="py-10 text-center">
             <p className="text-sm text-gray-600">조건에 맞는 물건이 없어요.</p>
             <button

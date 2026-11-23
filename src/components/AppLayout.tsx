@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import SetupBanner from './SetupBanner'
 import SignOutButton from './SignOutButton'
 
@@ -17,8 +17,8 @@ export default function AppLayout() {
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col bg-white md:max-w-5xl">
       <SetupBanner />
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 md:px-6">
-        <p className="text-lg font-extrabold text-brand">BU 한인 중고거래</p>
+      <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-2 border-b border-gray-200 bg-white px-4 py-3 md:px-6">
+        <Link to="/" className="shrink-0 py-2 text-lg font-extrabold text-brand">BU 한인 중고거래</Link>
         {/* 넓은 화면용 위 메뉴 */}
         <nav aria-label="메뉴" className="mr-auto ml-8 hidden gap-1 md:flex">
           {TABS.map((tab) => (
@@ -36,7 +36,10 @@ export default function AppLayout() {
             </NavLink>
           ))}
         </nav>
-        <SignOutButton />
+        <div className="ml-auto flex shrink-0 items-center">
+          <Link to="/profile/edit" className="flex min-h-11 items-center px-2 text-sm text-gray-600 underline">프로필 수정</Link>
+          <SignOutButton />
+        </div>
       </header>
 
       {/* 각 화면(pages/)이 이 자리에 들어온다 */}
