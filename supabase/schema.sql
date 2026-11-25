@@ -35,6 +35,10 @@ create table if not exists public.profiles (
   constraint profiles_nickname_length check (char_length(btrim(nickname)) between 2 and 20)
 );
 
+-- 닉네임은 대소문자만 다른 것도 같은 이름으로 본다. (Kim 이 있으면 kim, KIM 은 만들 수 없다)
+-- 저장되는 모양은 쓴 그대로다. 이미 만들어진 DB 에도 이 한 줄로 추가된다. (2026-11-24)
+create unique index if not exists profiles_nickname_lower_key on public.profiles (lower(btrim(nickname)));
+
 -- 1-2. listings: 판매 글
 create table if not exists public.listings (
   id                  uuid primary key default gen_random_uuid(),
