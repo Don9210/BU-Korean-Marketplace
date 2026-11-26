@@ -135,7 +135,7 @@ export default function ListPage() {
               type="button"
               aria-pressed={selected}
               onClick={() => updateParam('category', value ?? '')}
-              className={`min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold ${
+              className={`min-h-10 shrink-0 rounded-full border px-4 text-sm font-medium ${
                 selected ? 'border-brand bg-brand text-white' : 'border-gray-300 bg-white text-gray-700'
               }`}
             >
@@ -168,7 +168,7 @@ export default function ListPage() {
           ))}
         </select>
       </div>
-      <p className="mt-2 text-sm text-gray-600" aria-live="polite">
+      <p className="mt-2 text-[13px] text-gray-500" aria-live="polite">
         {loading ? '불러오는 중…' : `물건 ${listings.length}개`}
       </p>
 
@@ -232,11 +232,11 @@ function ListingCard({ listing }: { listing: Listing }) {
           src={listing.image_urls[0]}
           alt=""
           loading="lazy"
-          className={`h-24 w-24 shrink-0 rounded-lg border border-gray-100 bg-gray-100 object-cover md:aspect-square md:h-auto md:w-full ${done ? 'grayscale' : ''}`}
+          className={`h-24 w-24 shrink-0 rounded-xl border border-gray-100 bg-gray-100 object-cover md:aspect-square md:h-auto md:w-full ${done ? 'grayscale' : ''}`}
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-gray-900">{listing.title}</p>
-          <p className="mt-1 truncate text-xs text-gray-500">{listing.category} · {listing.place}</p>
+          <p className="mt-1 truncate text-[13px] text-gray-500">{listing.category} · {listing.place}</p>
           <div className="mt-2 flex items-center gap-2">
             <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[listing.status]}`}>
               {STATUS_LABELS[listing.status]}

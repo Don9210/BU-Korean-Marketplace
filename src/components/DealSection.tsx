@@ -86,7 +86,7 @@ export default function DealSection({ listing, onChanged }: Props) {
   if (isBuyer) {
     return (
       <section className="border-t border-gray-200 p-4">
-        <h2 className="text-base font-bold">거래 확인</h2>
+        <h2 className="text-lg text-gray-900">거래 확인</h2>
         {confirmed ? (
           <p className="mt-2 text-sm text-gray-700">거래가 확정됐어요. 내 활동에서 상대를 평가할 수 있어요.</p>
         ) : (
@@ -105,7 +105,7 @@ export default function DealSection({ listing, onChanged }: Props) {
   // ---------- 판매자 화면 ----------
   return (
     <section className="border-t border-gray-200 p-4">
-      <h2 className="text-base font-bold">거래 상태</h2>
+      <h2 className="text-lg text-gray-900">거래 상태</h2>
 
       {confirmed ? (
         <p className="mt-2 text-sm text-gray-700">

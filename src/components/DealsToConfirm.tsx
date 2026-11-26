@@ -5,14 +5,19 @@ import { formatPrice } from '../lib/constants'
 import { confirmDeal, loadDealsToConfirm, loadPeople, type Person } from '../lib/deals'
 import type { Listing } from '../lib/types'
 import Button from './Button'
+import { IconCheckCircle } from './icons'
 
 interface Props {
   /** 거래를 확인하면 부른다. (내 프로필의 거래 횟수, 평가할 거래 목록을 새로 고치는 데 쓴다) */
   onConfirmed?: () => void
+  /** 내 활동 "한눈에 보기"에서 이 구역으로 이동할 때 쓰는 id */
+  id?: string
+  /** 불러온 개수를 알려 준다. (내 활동 "한눈에 보기" 숫자) */
+  onCount?: (count: number) => void
 }
 
 /** 기능 5 · 내 활동의 "확인 대기 거래": 판매자가 나를 구매자로 선택한 거래를 확인한다. */
-export default function DealsToConfirm({ onConfirmed }: Props) {
+export default function DealsToConfirm({ onConfirmed, id, onCount }: Props) {
   const { session } = useAuth()
   const userId = session?.user.id
   const [deals, setDeals] = useState<Listing[]>([])
@@ -43,6 +48,10 @@ export default function DealsToConfirm({ onConfirmed }: Props) {
     return () => { active = false }
   }, [userId, retry])
 
+  useEffect(() => {
+    if (!loading && !loadError) onCount?.(deals.length)
+  }, [loading, loadError, deals.length, onCount])
+
   async function handleConfirm(deal: Listing) {
     if (!userId || busyId) return
     setBusyId(deal.id)
@@ -61,8 +70,8 @@ export default function DealsToConfirm({ onConfirmed }: Props) {
   }
 
   return (
-    <section className="border-b border-gray-200 p-4">
-      <h2 className="text-xl font-bold">확인 대기 거래</h2>
+    <section id={id} className="scroll-mt-20 border-b border-gray-100 p-4 md:px-6">
+      <h2 className="flex items-center gap-2 text-lg text-gray-900"><IconCheckCircle className="h-5 w-5 text-brand" />확인 대기 거래</h2>
       {notice && <p role="status" className="mt-2 text-sm text-green-700">{notice}</p>}
       {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
 
@@ -76,13 +85,13 @@ export default function DealsToConfirm({ onConfirmed }: Props) {
           </Button>
         </div>
       ) : deals.length === 0 ? (
-        <p className="py-6 text-sm text-gray-600">확인할 거래가 없어요.</p>
+        <p className="pt-2 text-sm text-gray-500">확인할 거래가 없어요.</p>
       ) : (
         <ul className="mt-3 divide-y divide-gray-100">
           {deals.map((deal) => (
             <li key={deal.id} className="py-4">
               <Link to={`/listings/${deal.id}`} className="flex items-center gap-3">
-                <img src={deal.image_urls[0]} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                <img src={deal.image_urls[0]} alt="" className="h-16 w-16 rounded-xl object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{deal.title}</p>
                   <p className="mt-1 text-sm">{formatPrice(deal.price)}</p>

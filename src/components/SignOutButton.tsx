@@ -22,7 +22,7 @@ export default function SignOutButton() {
   return (
     <div>
       <button type="button" onClick={handleSignOut} disabled={busy}
-        className="min-h-11 px-2 text-sm text-gray-600 underline disabled:opacity-50">
+        className="flex min-h-10 items-center rounded-full px-3 text-[13px] font-medium text-gray-600 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50">
         {busy ? '로그아웃 중…' : '로그아웃'}
       </button>
       {error && <p role="alert" className="text-xs text-red-700">{error}</p>}

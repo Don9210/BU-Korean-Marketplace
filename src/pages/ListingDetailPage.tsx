@@ -122,7 +122,7 @@ function ListingDetail({ id, userId }: { id: string; userId: string }) {
                 {listing.category} · {new Date(listing.created_at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 등록
               </span>
             </div>
-            <h1 className="mt-2 break-words text-xl font-bold text-gray-900">{listing.title}</h1>
+            <h1 className="mt-2 break-words font-sans text-2xl font-bold tracking-tight text-gray-900">{listing.title}</h1>
             <p className="mt-1 text-xl font-extrabold text-gray-900">{formatPrice(listing.price)}</p>
             {/* DB 에 원화 칸이 아직 없을 때(값 없음)도 안전하게 넘어간다 */}
             {Boolean(listing.price_krw) && listing.price_krw !== null && (

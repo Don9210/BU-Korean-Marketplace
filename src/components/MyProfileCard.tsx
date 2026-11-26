@@ -29,13 +29,20 @@ export default function MyProfileCard({ refreshKey = 0 }: Props) {
   const profile = fresh?.id === userId ? fresh : loginProfile
   if (!profile) return null
 
+  const nickname = profile.nickname || '닉네임 없음'
   return (
-    <section className="border-b border-gray-200 p-4 md:px-6">
-      <h1 className="text-xl font-bold">{profile.nickname || '닉네임 없음'}</h1>
-      <p className="mt-1 text-xs text-gray-500">{session?.user.email}</p>
-      <div className="mt-3 flex items-center gap-4">
-        <RatingSummary ratingAvg={profile.rating_avg} ratingCount={profile.rating_count} />
-        <span className="text-sm text-gray-800">거래 완료 {profile.completed_count}회</span>
+    <section className="flex items-center gap-4 p-4 md:px-6">
+      {/* 프로필 사진 대신 닉네임 첫 글자 */}
+      <div aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-red-50 font-display text-2xl text-brand">
+        {Array.from(nickname)[0]}
+      </div>
+      <div className="min-w-0">
+        <h1 className="truncate text-2xl text-gray-900">{nickname}</h1>
+        <p className="truncate text-xs text-gray-500">{session?.user.email}</p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <RatingSummary ratingAvg={profile.rating_avg} ratingCount={profile.rating_count} />
+          <span className="text-sm text-gray-700">거래 완료 <b className="font-semibold text-gray-900">{profile.completed_count}</b>회</span>
+        </div>
       </div>
     </section>
   )

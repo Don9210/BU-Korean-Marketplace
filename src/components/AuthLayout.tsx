@@ -17,7 +17,7 @@ export default function AuthLayout() {
     <div className="mx-auto flex min-h-full max-w-md flex-col bg-white md:max-w-none md:flex-row">
       {/* 넓은 화면에서만 보이는 소개 칸 */}
       <aside className="hidden bg-brand px-12 py-16 text-white md:flex md:w-1/2 md:flex-col md:justify-center lg:px-20">
-        <p className="text-4xl font-extrabold lg:text-5xl">BU 한인 중고거래</p>
+        <p className="font-display text-5xl lg:text-6xl">BU 한인 중고거래</p>
         <p className="mt-4 text-lg text-white/90">보스턴대 한인 학생들의 캠퍼스 중고장터</p>
         <ul className="mt-12 space-y-6">
           {POINTS.map((point) => (
@@ -34,7 +34,7 @@ export default function AuthLayout() {
           <SetupBanner />
           {/* 폰에서는 제목을 여기에 보여 준다. 넓은 화면에서는 왼쪽 소개 칸에 있으므로 숨긴다. */}
           <header className="px-4 pt-10 pb-2 md:hidden">
-            <p className="text-2xl font-extrabold text-brand">BU 한인 중고거래</p>
+            <p className="font-display text-3xl text-brand">BU 한인 중고거래</p>
             <p className="mt-1 text-sm text-gray-500">bu.edu 인증 학생끼리만 거래해요</p>
           </header>
           <main>
