@@ -2,15 +2,20 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/auth-context'
 import { loadDealsToRate, submitRating, type DealToRate } from '../lib/ratings'
 import Button from './Button'
+import { IconStar } from './icons'
 import RatingStars from './RatingStars'
 
 interface Props {
   /** 값이 바뀌면 목록을 다시 불러온다. (방금 거래를 확인했을 때 부모가 올려 준다) */
   refreshKey?: number
+  /** 내 활동 "한눈에 보기"에서 이 구역으로 이동할 때 쓰는 id */
+  id?: string
+  /** 불러온 개수를 알려 준다. (내 활동 "한눈에 보기" 숫자) */
+  onCount?: (count: number) => void
 }
 
 /** 기능 6 · 내 활동의 "평가할 거래": 확정된 거래의 상대를 1~5점으로 평가한다. (선택, 거래당 1회) */
-export default function DealsToRate({ refreshKey = 0 }: Props) {
+export default function DealsToRate({ refreshKey = 0, id: sectionId, onCount }: Props) {
   const { session } = useAuth()
   const userId = session?.user.id
   const [deals, setDeals] = useState<DealToRate[]>([])
@@ -41,6 +46,10 @@ export default function DealsToRate({ refreshKey = 0 }: Props) {
     return () => { active = false }
   }, [userId, retry, refreshKey])
 
+  useEffect(() => {
+    if (!loading && !loadError) onCount?.(deals.length)
+  }, [loading, loadError, deals.length, onCount])
+
   async function handleSubmit(deal: DealToRate) {
     if (!userId || busyId) return
     const id = deal.listing.id
@@ -59,8 +68,8 @@ export default function DealsToRate({ refreshKey = 0 }: Props) {
   }
 
   return (
-    <section className="border-b border-gray-200 p-4">
-      <h2 className="text-xl font-bold">평가할 거래</h2>
+    <section id={sectionId} className="scroll-mt-20 border-b border-gray-100 p-4 md:px-6">
+      <h2 className="flex items-center gap-2 text-lg text-gray-900"><IconStar className="h-5 w-5 text-brand" />평가할 거래</h2>
       {notice && <p role="status" className="mt-2 text-sm text-green-700">{notice}</p>}
       {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
 
@@ -74,7 +83,7 @@ export default function DealsToRate({ refreshKey = 0 }: Props) {
           </Button>
         </div>
       ) : deals.length === 0 ? (
-        <p className="py-6 text-sm text-gray-600">평가할 거래가 없어요.</p>
+        <p className="pt-2 text-sm text-gray-500">평가할 거래가 없어요.</p>
       ) : (
         <ul className="mt-3 divide-y divide-gray-100">
           {deals.map((deal) => {
@@ -83,7 +92,7 @@ export default function DealsToRate({ refreshKey = 0 }: Props) {
             return (
               <li key={id} className="py-4">
                 <div className="flex items-center gap-3">
-                  <img src={deal.listing.image_urls[0]} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                  <img src={deal.listing.image_urls[0]} alt="" className="h-16 w-16 rounded-xl object-cover" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{deal.listing.title}</p>
                     <p className="mt-1 text-xs text-gray-600">{deal.partnerRole}: {name}</p>

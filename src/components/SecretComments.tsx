@@ -109,7 +109,7 @@ export default function SecretComments({ listing, userId }: Props) {
   return (
     <section aria-labelledby="comments-title" className="border-t border-gray-200 p-4">
       <div className="flex items-center justify-between">
-        <h2 id="comments-title" className="text-base font-bold">비밀댓글</h2>
+        <h2 id="comments-title" className="text-lg text-gray-900">비밀댓글</h2>
         <button
           type="button"
           onClick={refresh}
@@ -145,7 +145,7 @@ export default function SecretComments({ listing, userId }: Props) {
           {threads.map((thread) => (
             <article key={thread.root.id} className="mt-4 rounded-xl border border-gray-200 p-3">
               {isSeller && (
-                <h3 className="mb-2 text-sm font-semibold text-gray-900">{nameOf(thread.root.author_id)} 님과의 대화</h3>
+                <h3 className="mb-2 text-[15px] text-gray-900">{nameOf(thread.root.author_id)} 님과의 대화</h3>
               )}
               <ol className="space-y-3">
                 {[thread.root, ...thread.replies].map((comment) => {

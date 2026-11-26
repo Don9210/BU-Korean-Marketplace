@@ -1,9 +1,16 @@
 @import "tailwindcss";
 
-/* 앱 전체에서 쓰는 색. Tailwind 에서 bg-brand, text-brand 처럼 쓴다. */
+/* 앱 전체에서 쓰는 색과 폰트. Tailwind 에서 bg-brand, text-brand, font-display 처럼 쓴다. */
 @theme {
   --color-brand: #cc0000;
   --color-brand-dark: #a30000;
+
+  /* 본문: Pretendard (읽기 편한 고딕). 폰트 파일은 src/main.tsx 에서 불러온다. */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Noto Sans KR', system-ui, sans-serif;
+  /* 로고·제목: 주아체 (둥글고 친근한 느낌). 굵기가 하나뿐이다. */
+  --font-display: 'Jua', 'Pretendard Variable', Pretendard, sans-serif;
 }
 
 html,
@@ -15,8 +22,20 @@ body,
 body {
   margin: 0;
   background: #e5e7eb; /* 내용 바깥 배경 (화면이 내용보다 넓을 때 보인다) */
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR',
-    system-ui, sans-serif;
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em; /* Pretendard 는 살짝 좁혀야 한글이 단정해 보인다 */
   -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  /* 화면·묶음 제목(h1~h3)은 로고와 같은 주아체.
+     주아체는 굵기가 하나라서, 브라우저가 억지로 두껍게 만드는 것(font-synthesis)을 끈다.
+     글 제목처럼 내용인 제목은 className 에 font-sans 를 붙이면 Pretendard 로 돌아간다. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-synthesis: none;
+    letter-spacing: 0;
+  }
 }
