@@ -48,6 +48,7 @@ create table if not exists public.listings (
   price_krw           int,                     -- 선택. "원화로도 받아요" 금액(원). 비우면 달러로만 거래
   category            text not null,
   place               text not null,
+  place_detail        text,                    -- 장소가 '기타'일 때 직접 적은 곳 (예: CAS 건물 앞). 그 밖에는 비운다
   description         text not null default '',
   image_urls          text[] not null,
   status              text not null default 'available',
@@ -61,6 +62,7 @@ create table if not exists public.listings (
   constraint listings_price_krw     check (price_krw is null or (price_krw > 0 and price > 0)),
   constraint listings_category      check (category in ('가구', '주방용품', '교재', '전자기기', '의류', '기타')),
   constraint listings_place         check (place in ('GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', 'FitRec 앞', '기타')),
+  constraint listings_place_detail  check (place_detail is null or (place = '기타' and char_length(btrim(place_detail)) between 1 and 30)),
   constraint listings_description   check (char_length(description) <= 2000),
   constraint listings_image_count   check (cardinality(image_urls) between 1 and 5),
   constraint listings_status        check (status in ('available', 'reserved', 'completed')),
@@ -80,6 +82,11 @@ alter table public.listings add constraint listings_image_count
 alter table public.listings drop constraint if exists listings_place;
 alter table public.listings add constraint listings_place
   check (place in ('GSU 앞', 'Warren Towers 앞', 'Mugar 도서관 앞', 'FitRec 앞', '기타'));
+--   2026-11-26: 장소가 '기타'일 때 직접 적는 칸(place_detail) 추가. 예전 '기타' 글은 비어 있어도 된다
+alter table public.listings add column if not exists place_detail text;
+alter table public.listings drop constraint if exists listings_place_detail;
+alter table public.listings add constraint listings_place_detail
+  check (place_detail is null or (place = '기타' and char_length(btrim(place_detail)) between 1 and 30));
 
 -- 1-3. comments: 비밀댓글 (parent_id 가 비어 있으면 댓글, 있으면 그 댓글의 답글)
 create table if not exists public.comments (
@@ -395,7 +402,7 @@ grant select (id, nickname, rating_avg, rating_count, completed_count, created_a
 grant update (nickname)      on public.profiles to authenticated;
 
 grant select, insert, delete on public.listings to authenticated;
-grant update (title, price, price_krw, category, place, description, image_urls, status, buyer_id, buyer_confirmed_at)
+grant update (title, price, price_krw, category, place, place_detail, description, image_urls, status, buyer_id, buyer_confirmed_at)
   on public.listings to authenticated;
 
 grant select, insert, delete on public.comments to authenticated;

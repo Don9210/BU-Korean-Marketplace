@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Button from '../components/Button'
 import {
-  CATEGORIES, STATUS_LABELS, formatPrice, type Category, type ListingStatus,
+  CATEGORIES, STATUS_LABELS, formatPrice, placeLabel, type Category, type ListingStatus,
 } from '../lib/constants'
 import { supabase } from '../lib/supabase'
 import type { Listing } from '../lib/types'
@@ -236,7 +236,7 @@ function ListingCard({ listing }: { listing: Listing }) {
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-gray-900">{listing.title}</p>
-          <p className="mt-1 truncate text-[13px] text-gray-500">{listing.category} · {listing.place}</p>
+          <p className="mt-1 truncate text-[13px] text-gray-500">{listing.category} · {placeLabel(listing)}</p>
           <div className="mt-2 flex items-center gap-2">
             <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[listing.status]}`}>
               {STATUS_LABELS[listing.status]}

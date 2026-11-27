@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'r
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Button from '../components/Button'
 import { useAuth } from '../lib/auth-context'
-import { CATEGORIES, PLACES, MAX_IMAGES, type Category, type Place } from '../lib/constants'
+import { CATEGORIES, PLACES, MAX_IMAGES, PLACE_DETAIL_MAX, type Category, type Place } from '../lib/constants'
 import { compressListingImage } from '../lib/listing-images'
 import { deleteListing, loadOwnedListing, saveListing, validateListing, type ListingDraft, type ListingPhoto } from '../lib/listings'
 import type { Listing } from '../lib/types'
@@ -21,7 +21,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
   const navigate = useNavigate()
   const [listingId] = useState(() => id ?? crypto.randomUUID())
   const [original, setOriginal] = useState<Listing | null>(null)
-  const [draft, setDraft] = useState<ListingDraft>({ title: '', price: '', priceKrw: '', category: '', place: '', description: '' })
+  const [draft, setDraft] = useState<ListingDraft>({ title: '', price: '', priceKrw: '', category: '', place: '', placeDetail: '', description: '' })
   const [photos, setPhotos] = useState<ListingPhoto[]>([])
   const [loading, setLoading] = useState(Boolean(id))
   const [loadError, setLoadError] = useState('')
@@ -46,7 +46,7 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
       if (!active) return
       if (!listing) { setLoadError('글이 없거나 수정 권한이 없어요.'); return }
       setOriginal(listing)
-      setDraft({ title: listing.title, price: String(listing.price), priceKrw: listing.price_krw ? String(listing.price_krw) : '', category: listing.category, place: listing.place, description: listing.description })
+      setDraft({ title: listing.title, price: String(listing.price), priceKrw: listing.price_krw ? String(listing.price_krw) : '', category: listing.category, place: listing.place, placeDetail: listing.place_detail ?? '', description: listing.description })
       setPhotos(listing.image_urls.map((url) => ({ id: crypto.randomUUID(), previewUrl: url, existingUrl: url })))
     }).catch(() => {
       if (active) setLoadError('글을 불러오지 못했어요. 다시 시도해 주세요.')
@@ -168,6 +168,13 @@ function ListingEditor({ id, userId }: { id?: string; userId: string }) {
               <option value="">선택해 주세요</option>{PLACES.map((value) => <option key={value}>{value}</option>)}
             </select>
           </label>
+          {/* '기타'를 골랐을 때만 직접 적는 칸이 나온다 */}
+          {draft.place === '기타' && (
+            <label className="block text-sm font-semibold">거래할 장소 직접 입력
+              <input value={draft.placeDetail} onChange={(event) => setDraft({ ...draft, placeDetail: event.target.value })} required maxLength={PLACE_DETAIL_MAX} className={INPUT} placeholder="예: CAS 건물 앞" aria-describedby="place-detail-help" />
+              <span id="place-detail-help" className="mt-1 block text-xs font-normal text-gray-500">집 주소나 방 번호 대신, 캠퍼스 안 사람이 많은 곳을 적어 주세요. ({PLACE_DETAIL_MAX}자 이내)</span>
+            </label>
+          )}
           <label className="block text-sm font-semibold">설명
             <textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} rows={5} className={INPUT} placeholder="물건의 상태와 거래할 때 알아야 할 내용을 적어 주세요." />
             <span className="mt-1 block text-xs font-normal text-gray-500">{Array.from(draft.description).length}/2,000자</span>

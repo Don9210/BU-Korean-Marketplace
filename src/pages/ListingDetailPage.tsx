@@ -5,7 +5,7 @@ import DealSection from '../components/DealSection'
 import RatingSummary from '../components/RatingSummary'
 import SecretComments from '../components/SecretComments'
 import { useAuth } from '../lib/auth-context'
-import { STATUS_LABELS, formatKrw, formatPrice, type ListingStatus } from '../lib/constants'
+import { STATUS_LABELS, formatKrw, formatPrice, placeLabel, type ListingStatus } from '../lib/constants'
 import { supabase } from '../lib/supabase'
 import type { Listing, Profile } from '../lib/types'
 
@@ -128,7 +128,7 @@ function ListingDetail({ id, userId }: { id: string; userId: string }) {
             {Boolean(listing.price_krw) && listing.price_krw !== null && (
               <p className="mt-1 text-sm text-gray-700">원화로도 받아요 · <span className="font-semibold">{formatKrw(listing.price_krw)}</span></p>
             )}
-            <p className="mt-2 text-sm text-gray-700">📍 거래 장소: {listing.place}</p>
+            <p className="mt-2 text-sm text-gray-700">📍 거래 장소: {placeLabel(listing)}</p>
             {listing.description ? (
               <p className="mt-4 whitespace-pre-wrap break-words text-base leading-relaxed text-gray-800">{listing.description}</p>
             ) : (

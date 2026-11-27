@@ -1,4 +1,4 @@
-import { CATEGORIES, PLACES, MAX_IMAGES, type Category, type Place } from './constants'
+import { CATEGORIES, PLACES, MAX_IMAGES, PLACE_DETAIL_MAX, type Category, type Place } from './constants'
 import { LISTING_IMAGE_BUCKET, ownedImagePath, removeListingImages } from './listing-images'
 import { supabase } from './supabase'
 import type { Listing } from './types'
@@ -10,6 +10,8 @@ export interface ListingDraft {
   priceKrw: string
   category: Category | ''
   place: Place | ''
+  /** 장소가 '기타'일 때 직접 적는 곳. 다른 장소를 고르면 저장하지 않는다 */
+  placeDetail: string
   description: string
 }
 
@@ -41,6 +43,11 @@ export function validateListing(draft: ListingDraft, photoCount: number): string
   }
   if (!(CATEGORIES as readonly string[]).includes(draft.category)) return '카테고리를 선택해 주세요.'
   if (!(PLACES as readonly string[]).includes(draft.place)) return '거래 장소를 선택해 주세요.'
+  if (draft.place === '기타') {
+    const detailLength = Array.from(draft.placeDetail.trim()).length
+    if (detailLength < 1) return '거래할 장소를 직접 적어 주세요. (예: CAS 건물 앞)'
+    if (detailLength > PLACE_DETAIL_MAX) return `거래 장소는 ${PLACE_DETAIL_MAX}자 이하로 적어 주세요.`
+  }
   if (Array.from(draft.description).length > 2000) return '설명은 2,000자 이하로 입력해 주세요.'
   return null
 }
@@ -89,7 +96,7 @@ export async function saveListing({ id, userId, original, draft, photos }: {
 
   const values = {
     title: draft.title.trim(), price: Number(draft.price), price_krw: parseKrw(draft.priceKrw), category: draft.category,
-    place: draft.place, description: draft.description.trim(), image_urls: imageUrls,
+    place: draft.place, place_detail: draft.place === '기타' ? draft.placeDetail.trim() : null, description: draft.description.trim(), image_urls: imageUrls,
   }
   const query = original
     ? supabase.from('listings').update(values).eq('id', id).eq('seller_id', userId)
@@ -102,7 +109,7 @@ export async function saveListing({ id, userId, original, draft, photos }: {
     let persisted: Listing | null = null
     try { persisted = await loadOwnedListing(id, userId) } catch { /* 결과 불명: 사진 보존 */ }
     if (persisted && persisted.title === values.title && persisted.price === values.price && persisted.price_krw === values.price_krw &&
-      persisted.category === values.category && persisted.place === values.place &&
+      persisted.category === values.category && persisted.place === values.place && (persisted.place_detail ?? null) === values.place_detail &&
       persisted.description === values.description && JSON.stringify(persisted.image_urls) === JSON.stringify(imageUrls)) {
       saved = persisted
     } else {

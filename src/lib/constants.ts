@@ -34,3 +34,11 @@ export function formatPrice(price: number): string {
 export function formatKrw(amount: number): string {
   return `₩${amount.toLocaleString('ko-KR')}`
 }
+
+/** 장소 직접 입력 칸의 최대 글자 수 */
+export const PLACE_DETAIL_MAX = 30
+
+/** 화면에 보여 줄 거래 장소. '기타'에 직접 적은 곳이 있으면 그것을 보여 준다. */
+export function placeLabel(listing: { place: string; place_detail?: string | null }) {
+  return listing.place === '기타' && listing.place_detail ? listing.place_detail : listing.place
+}

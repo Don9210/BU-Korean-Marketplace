@@ -22,6 +22,7 @@ export interface Listing {
   price_krw: number | null // 선택. "원화로도 받아요" 금액(원). 없으면 null
   category: Category
   place: Place
+  place_detail: string | null // 장소가 '기타'일 때 직접 적은 곳. 없으면 null
   description: string
   image_urls: string[]
   status: ListingStatus
